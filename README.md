@@ -44,7 +44,10 @@ npm run build
 - `src/scenes/DialogScene.js`：名前枠、仮ポートレート、会話パネル。
 - `src/systems/DialogManager.js`：タイプ表示や会話行の進行状態。
 - `src/systems/CursorManager.js`：ろうそく・NPC・調べられる物に応じたカーソル表示。仮SVGを画像に差し替える場所。
-- `src/data/dialogues.js`：NPCごとの会話文。正式な台詞はここで編集。
+- `src/data/npcs.json`：NPCの名前・位置・色・セリフ（`lines`）。正式な名前とセリフはここで編集。
+- `src/data/dialogues.js`：`npcs.json` から会話データを作る読み込み用。通常は編集しない。
+- `src/systems/DebugOverlay.js`：マップでF2キーを押すと、マウス座標・クリック範囲・歩ける範囲を表示する開発用の補助。
+- `public/assets/`：素材置き場。`map/`（背景）、`npc/`（キャラ）、`items/`（調べる物）、`birthday/`（誕生日演出）、`ui/`（カーソルなど）。
 - `package.json`：実行コマンドとPhaser/Vite依存関係。
 - `package-lock.json`：インストールした依存関係の固定情報。
 - `public/assets/`：後で画像などの素材を置く場所。

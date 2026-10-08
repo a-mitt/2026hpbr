@@ -1,5 +1,11 @@
 import Phaser from "phaser";
-import { MAP_HEIGHT, MAP_WIDTH, PLAYER_SPEED } from "../constants.js";
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  PLAYER_MARGIN_X,
+  PLAYER_MARGIN_Y,
+  PLAYER_SPEED,
+} from "../constants.js";
 
 export class Player extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
@@ -28,25 +34,31 @@ export class Player extends Phaser.GameObjects.Container {
     this.setDepth(y);
   }
 
-  update(delta) {
-    const horizontalDirection = Number(this.keys.right.isDown || this.keys.d.isDown)
+  // stickVector: 仮想スティックの向き（x, yとも -1〜1）。キー入力があればキーを優先する
+  update(delta, stickVector = { x: 0, y: 0 }) {
+    let horizontalDirection = Number(this.keys.right.isDown || this.keys.d.isDown)
       - Number(this.keys.left.isDown || this.keys.a.isDown);
-    const verticalDirection = Number(this.keys.down.isDown || this.keys.s.isDown)
+    let verticalDirection = Number(this.keys.down.isDown || this.keys.s.isDown)
       - Number(this.keys.up.isDown || this.keys.w.isDown);
-    const diagonalScale = horizontalDirection !== 0 && verticalDirection !== 0
-      ? Math.SQRT1_2
-      : 1;
+
+    if (horizontalDirection === 0 && verticalDirection === 0) {
+      horizontalDirection = stickVector.x;
+      verticalDirection = stickVector.y;
+    }
+
+    const length = Math.hypot(horizontalDirection, verticalDirection);
+    const diagonalScale = length > 1 ? 1 / length : 1;
     const distance = this.speed * (delta / 1000) * diagonalScale;
 
     this.x = Phaser.Math.Clamp(
       this.x + horizontalDirection * distance,
-      58,
-      MAP_WIDTH - 58,
+      PLAYER_MARGIN_X,
+      MAP_WIDTH - PLAYER_MARGIN_X,
     );
     this.y = Phaser.Math.Clamp(
       this.y + verticalDirection * distance,
-      82,
-      MAP_HEIGHT - 82,
+      PLAYER_MARGIN_Y,
+      MAP_HEIGHT - PLAYER_MARGIN_Y,
     );
     this.setDepth(this.y);
   }
