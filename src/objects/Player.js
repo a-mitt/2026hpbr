@@ -1,11 +1,6 @@
 import Phaser from "phaser";
-import {
-  MAP_HEIGHT,
-  MAP_WIDTH,
-  PLAYER_MARGIN_X,
-  PLAYER_MARGIN_Y,
-  PLAYER_SPEED,
-} from "../constants.js";
+import { FOOT_OFFSET, PLAYER_SPEED } from "../constants.js";
+import { canStand } from "../data/mapLayout.js";
 
 export class Player extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
@@ -31,7 +26,7 @@ export class Player extends Phaser.GameObjects.Container {
       s: Phaser.Input.Keyboard.KeyCodes.S,
       d: Phaser.Input.Keyboard.KeyCodes.D,
     });
-    this.setDepth(y);
+    this.setDepth(y + FOOT_OFFSET);
   }
 
   // stickVector: 仮想スティックの向き（x, yとも -1〜1）。キー入力があればキーを優先する
@@ -50,16 +45,15 @@ export class Player extends Phaser.GameObjects.Container {
     const diagonalScale = length > 1 ? 1 / length : 1;
     const distance = this.speed * (delta / 1000) * diagonalScale;
 
-    this.x = Phaser.Math.Clamp(
-      this.x + horizontalDirection * distance,
-      PLAYER_MARGIN_X,
-      MAP_WIDTH - PLAYER_MARGIN_X,
-    );
-    this.y = Phaser.Math.Clamp(
-      this.y + verticalDirection * distance,
-      PLAYER_MARGIN_Y,
-      MAP_HEIGHT - PLAYER_MARGIN_Y,
-    );
-    this.setDepth(this.y);
+    // 足元の位置で当たり判定。x・yを別々に試すので、壁や家具に沿って滑れる
+    const nextX = this.x + horizontalDirection * distance;
+    if (canStand(nextX, this.y + FOOT_OFFSET)) {
+      this.x = nextX;
+    }
+    const nextY = this.y + verticalDirection * distance;
+    if (canStand(this.x, nextY + FOOT_OFFSET)) {
+      this.y = nextY;
+    }
+    this.setDepth(this.y + FOOT_OFFSET);
   }
 }

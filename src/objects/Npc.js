@@ -1,4 +1,5 @@
 import { FONTS } from "../theme.js";
+import { FOOT_OFFSET } from "../constants.js";
 import Phaser from "phaser";
 
 export class Npc extends Phaser.GameObjects.Container {
@@ -34,7 +35,7 @@ export class Npc extends Phaser.GameObjects.Container {
     this.name = npcData.name;
     this.dialogueId = npcData.id;
     this.color = npcData.color;
-    this.setDepth(npcData.y);
+    this.setDepth(npcData.y + FOOT_OFFSET);
     scene.add.existing(this);
     scene.cursorManager.bind(this, "talk", () => {
       if (this.talkAvailable) {
