@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { CursorManager } from "../systems/CursorManager.js";
+import { GAME_HEIGHT, GAME_WIDTH, OFFSET_X, OFFSET_Y } from "../constants.js";
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
+const CX = GAME_WIDTH / 2;
 const CANDLE_COUNT = 8;
 
 export class BirthdayScene extends Phaser.Scene {
@@ -56,22 +56,22 @@ export class BirthdayScene extends Phaser.Scene {
 
   createRoom() {
     this.addIntroObject(
-      this.add.rectangle(400, 300, GAME_WIDTH, GAME_HEIGHT, 0x24363a),
+      this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x24363a),
     );
     this.addIntroObject(
-      this.add.rectangle(400, 165, 800, 2, 0x496064, 0.6),
+      this.add.rectangle(CX, 165, GAME_WIDTH, 2, 0x496064, 0.6),
     );
     this.addIntroObject(
-      this.add.rectangle(115, 300, 132, 600, 0x8d5548, 0.46),
+      this.add.rectangle(115, GAME_HEIGHT / 2, 132, GAME_HEIGHT, 0x8d5548, 0.46),
     );
     this.addIntroObject(
-      this.add.rectangle(685, 300, 132, 600, 0x8d5548, 0.46),
+      this.add.rectangle(GAME_WIDTH - 115, GAME_HEIGHT / 2, 132, GAME_HEIGHT, 0x8d5548, 0.46),
     );
     this.addIntroObject(
-      this.add.rectangle(400, 555, 800, 90, 0x18272b),
+      this.add.rectangle(CX, GAME_HEIGHT - 45, GAME_WIDTH, 90, 0x18272b),
     );
     this.addIntroObject(
-      this.add.text(400, 54, "今夜の主役はあなた", {
+      this.add.text(CX, 54, "今夜の主役はあなた", {
         color: "#f4d6a0",
         fontFamily: "Georgia, serif",
         fontSize: "24px",
@@ -93,9 +93,9 @@ export class BirthdayScene extends Phaser.Scene {
       this.add.arc(0, 27, 22, 15, 15, 165, false, 0x8c433f),
     ];
 
-    this.character = this.add.container(650, 326, parts);
+    this.character = this.add.container(650 + OFFSET_X, 326 + OFFSET_Y, parts);
     this.addIntroObject(this.character, 15);
-    this.faceGlow = this.add.image(650, 336, "warm-candle-glow")
+    this.faceGlow = this.add.image(650 + OFFSET_X, 336 + OFFSET_Y, "warm-candle-glow")
       .setBlendMode(Phaser.BlendModes.SCREEN)
       .setScale(1.28)
       .setAlpha(0);
@@ -104,23 +104,23 @@ export class BirthdayScene extends Phaser.Scene {
 
   createCake() {
     this.addIntroObject(
-      this.add.rectangle(400, 482, 428, 126, 0xc76f62),
+      this.add.rectangle(CX, 482 + OFFSET_Y, 428, 126, 0xc76f62),
       10,
     );
     this.addIntroObject(
-      this.add.rectangle(400, 420, 440, 24, 0xf3d5b1),
+      this.add.rectangle(CX, 420 + OFFSET_Y, 440, 24, 0xf3d5b1),
       11,
     );
     this.addIntroObject(
-      this.add.rectangle(400, 516, 452, 14, 0xe9bd8c),
+      this.add.rectangle(CX, 516 + OFFSET_Y, 452, 14, 0xe9bd8c),
       12,
     );
     this.addIntroObject(
-      this.add.ellipse(400, 420, 438, 24, 0xffe8c9),
+      this.add.ellipse(CX, 420 + OFFSET_Y, 438, 24, 0xffe8c9),
       13,
     );
     this.addIntroObject(
-      this.add.text(400, 464, "HAPPY DAY", {
+      this.add.text(CX, 464 + OFFSET_Y, "HAPPY DAY", {
         color: "#fff0d6",
         fontFamily: "Georgia, serif",
         fontSize: "19px",
@@ -131,14 +131,14 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createCandles() {
-    const firstCandleX = 260;
+    const firstCandleX = 260 + OFFSET_X;
     const candleSpacing = 40;
 
     for (let index = 0; index < CANDLE_COUNT; index += 1) {
       const x = firstCandleX + index * candleSpacing;
-      const flameY = 375;
-      const candleBody = this.add.rectangle(x, 399, 14, 44, 0xf6d99f);
-      const clickArea = this.add.zone(x, 399, 36, 74)
+      const flameY = 375 + OFFSET_Y;
+      const candleBody = this.add.rectangle(x, 399 + OFFSET_Y, 14, 44, 0xf6d99f);
+      const clickArea = this.add.zone(x, 399 + OFFSET_Y, 36, 74)
         .setInteractive({ useHandCursor: false });
       const flame = this.add.ellipse(x, flameY, 15, 22, 0xffc45e)
         .setVisible(false);
@@ -171,14 +171,14 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createInstructions() {
-    this.statusText = this.add.text(400, 91, "ろうそくをクリックして火を灯してね", {
+    this.statusText = this.add.text(CX, 91, "ろうそくをクリックして火を灯してね", {
       color: "#fff0d6",
       fontFamily: "sans-serif",
       fontSize: "19px",
       stroke: "#18272b",
       strokeThickness: 4,
     }).setOrigin(0.5).setDepth(80);
-    this.counterText = this.add.text(400, 558, `0 / ${CANDLE_COUNT}`, {
+    this.counterText = this.add.text(CX, GAME_HEIGHT - 42, `0 / ${CANDLE_COUNT}`, {
       color: "#ffe5bd",
       fontFamily: "sans-serif",
       fontSize: "17px",
@@ -236,11 +236,11 @@ export class BirthdayScene extends Phaser.Scene {
       return;
     }
 
-    this.blowButton = this.add.rectangle(400, 558, 224, 46, 0xe6c77a)
+    this.blowButton = this.add.rectangle(CX, GAME_HEIGHT - 42, 224, 46, 0xe6c77a)
       .setStrokeStyle(2, 0xfff0d6)
       .setDepth(85)
       .setInteractive({ useHandCursor: false });
-    this.blowButtonText = this.add.text(400, 558, "ふーっと吹き消す", {
+    this.blowButtonText = this.add.text(CX, GAME_HEIGHT - 42, "ふーっと吹き消す", {
       color: "#1c3034",
       fontFamily: "sans-serif",
       fontSize: "18px",
@@ -341,9 +341,9 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createCelebrationCard() {
-    this.add.rectangle(400, 300, GAME_WIDTH, GAME_HEIGHT, 0x26535a)
+    this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x26535a)
       .setDepth(30);
-    this.add.text(400, 92, "おめでとう！", {
+    this.add.text(CX, 60, "おめでとう！", {
       color: "#fff0d1",
       fontFamily: "Georgia, serif",
       fontSize: "52px",
@@ -352,25 +352,25 @@ export class BirthdayScene extends Phaser.Scene {
       strokeThickness: 7,
     }).setOrigin(0.5).setDepth(40);
 
-    this.add.rectangle(400, 339, 626, 326, 0x193a40)
+    this.add.rectangle(CX, 275, 626, 300, 0x193a40)
       .setStrokeStyle(4, 0xf2cc8f)
       .setDepth(40);
-    this.add.text(400, 337, "お祝いのイラストをここに入れる", {
+    this.add.text(CX, 275, "お祝いのイラストをここに入れる", {
       color: "#f4d6a0",
       fontFamily: "sans-serif",
       fontSize: "22px",
     }).setOrigin(0.5).setDepth(41);
-    this.add.text(400, 520, "今日はあなたが主役", {
+    this.add.text(CX, 462, "今日はあなたが主役", {
       color: "#fff0d1",
       fontFamily: "sans-serif",
       fontSize: "22px",
     }).setOrigin(0.5).setDepth(40);
 
-    const continueButton = this.add.rectangle(400, 565, 232, 42, 0xe5c88e)
+    const continueButton = this.add.rectangle(CX, GAME_HEIGHT - 32, 232, 42, 0xe5c88e)
       .setStrokeStyle(2, 0xfff0d6)
       .setDepth(41)
       .setInteractive({ useHandCursor: false });
-    this.add.text(400, 565, "クリックして会場へ", {
+    this.add.text(CX, GAME_HEIGHT - 32, "クリックして会場へ", {
       color: "#1c3034",
       fontFamily: "sans-serif",
       fontSize: "17px",
