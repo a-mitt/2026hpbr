@@ -11,14 +11,14 @@ export class Npc extends Phaser.GameObjects.Container {
       scene.add.ellipse(6, -18, 4, 5, 0x26323a),
       scene.add.text(0, 36, npcData.name, {
         color: "#fff0d6",
-        fontFamily: FONTS.ui,
+        fontFamily: FONTS.body,
         fontSize: "12px",
         stroke: "#26343a",
         strokeThickness: 3,
       }).setOrigin(0.5, 0),
       scene.add.text(0, -58, "!", {
         color: "#ffe27a",
-        fontFamily: FONTS.ui,
+        fontFamily: FONTS.body,
         fontSize: "30px",
         fontStyle: "bold",
         stroke: "#26343a",

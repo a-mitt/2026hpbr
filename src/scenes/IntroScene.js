@@ -30,7 +30,7 @@ export class IntroScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.add.text(CX, 200, "ろうそくに火を灯したら、会場を歩いてゲストとお話しします。", {
       color: "#f5e9d2",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "17px",
       wordWrap: { width: 560 },
       align: "center",
@@ -38,24 +38,24 @@ export class IntroScene extends Phaser.Scene {
 
     this.add.text(CX - 260, 262, "この作品は個人制作の非公式作品で、公式とは関係ありません。", {
       color: "#f5dcae",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "16px",
       wordWrap: { width: 520 },
     });
     this.add.text(CX - 260, 304, "制作中のため、不具合や未完成の箇所が残っている場合があります。", {
       color: "#f5dcae",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "16px",
       wordWrap: { width: 520 },
     });
     this.add.text(CX - 260, 360, "制作者：後で記入", {
       color: "#d5ded5",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "16px",
     });
     this.add.text(CX, 404, "横向きでのプレイを推奨します", {
       color: "#e5c88e",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "16px",
     }).setOrigin(0.5);
 

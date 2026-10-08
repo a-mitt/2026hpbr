@@ -27,7 +27,7 @@ export class DialogScene extends Phaser.Scene {
     }).setOrigin(0, 0.5);
     this.bodyText = this.add.text(232 + OFFSET_X, 474 + OFFSET_Y, "", {
       color: "#fff7e8",
-      fontFamily: FONTS.ui,
+      fontFamily: FONTS.body,
       fontSize: "24px",
       lineSpacing: 10,
       wordWrap: { width: 530 },

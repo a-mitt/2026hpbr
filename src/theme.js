@@ -19,6 +19,9 @@ export const CSS_COLORS = {
 };
 
 export const FONTS = {
-  ui: '"Fuiji", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif',
+  // 見出し・ボタン・案内（夜もすがらフォント。非収録の漢字は代替フォントに自動で切替）
+  ui: '"Yomosugara", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif',
+  // 会話文・説明文（無心フォント）
+  body: '"Mushin", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif',
   title: '"851MakaPop", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", sans-serif',
 };

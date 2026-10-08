@@ -1,8 +1,8 @@
 @font-face {
-  font-family: "Fuiji";
-  src: url("/assets/fonts/fuiji.woff2") format("woff2"),
-    url("/assets/fonts/fuiji.ttf") format("truetype"),
-    url("/assets/fonts/fuiji.otf") format("opentype");
+  font-family: "Yomosugara";
+  src: url("/assets/fonts/yomosugara.woff2") format("woff2"),
+    url("/assets/fonts/yomosugara.ttf") format("truetype"),
+    url("/assets/fonts/yomosugara.otf") format("opentype");
   font-display: swap;
 }
 
@@ -11,5 +11,13 @@
   src: url("/assets/fonts/851makapop.woff2") format("woff2"),
     url("/assets/fonts/851makapop.ttf") format("truetype"),
     url("/assets/fonts/851makapop.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mushin";
+  src: url("/assets/fonts/mushin.woff2") format("woff2"),
+    url("/assets/fonts/mushin.ttf") format("truetype"),
+    url("/assets/fonts/mushin.otf") format("opentype");
   font-display: swap;
 }
