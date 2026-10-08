@@ -5,11 +5,12 @@ import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 
 const CX = GAME_WIDTH / 2;
 const LEFT = 70;
-const BULLETS = [
-  "・本作は非公式の二次創作ゲームです。公式様とは一切関係ありません。",
-  "・ファンゲームのため、バグや不具合が残っている場合があります。恐れ入りますが、自己責任でのプレイをお願いいたします。",
-  "・もし不具合などを見つけた場合は、「設定」画面の【報告フォーム】から教えていただけると嬉しいです！",
-  "・📱👉スマホで遊ぶ場合は【横画面推奨】です！",
+const SMALL_NOTES = [
+  "・公式様とは一切関係ありません。ファンゲームのため、バグや不具合が残っている場合があります。恐れ入りますが、自己責任でのプレイをお願いいたします。",
+  "・不具合を見つけた場合は、「設定」画面の【報告フォーム】から教えていただけると嬉しいです！",
+  "・スクショ・SNS投稿・配信などは全てOKです。二次創作のため、公式様や他の方のご迷惑にならないようご配慮ください。これらによって生じた損害等について、製作者は責任を負いません。",
+  "・推奨環境：最新版のChrome / Safari / Edge。本作は個人情報の取得・保存を行いません。",
+  "・「同意して始める」を押すと、上記の注意・規約を読み、同意したものとみなします。",
 ];
 
 export class IntroScene extends Phaser.Scene {
@@ -25,41 +26,46 @@ export class IntroScene extends Phaser.Scene {
     this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH - 40, GAME_HEIGHT - 40, COLORS.panel)
       .setStrokeStyle(2, COLORS.orangeLight, 0.9);
 
-    this.add.text(CX, 52, "2026霊幻新隆おたおめ同人Webゲーム", {
+    this.add.text(CX, 46, "2026霊幻新隆おたおめ同人Webゲーム", {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.ui,
-      fontSize: "38px",
+      fontSize: "36px",
     }).setOrigin(0.5);
 
-    this.add.text(CX, 106, "⚠️！プレイする前に！", {
-      color: CSS_COLORS.orangeLight,
+    // 大きく見せる重要事項
+    const important = (y, text, size, color) => this.add.text(CX, y, text, {
+      color,
       fontFamily: FONTS.ui,
-      fontSize: "26px",
+      fontSize: `${size}px`,
     }).setOrigin(0.5);
+    important(94, "⚠️ 本作は非公式の二次創作ゲームです", 28, CSS_COLORS.orangeLight);
+    important(130, "⚠️ 光の明滅表現があります。ご注意ください", 24, CSS_COLORS.orangeLight);
+    important(164, "📱 スマホで遊ぶ場合は【横画面推奨】です！", 22, CSS_COLORS.cream);
 
-    this.add.text(LEFT, 136, BULLETS.join("\n"), {
-      color: CSS_COLORS.cream,
+    // 小さく読ませる注意・規約
+    this.add.text(LEFT, 194, SMALL_NOTES.join("\n"), {
+      color: CSS_COLORS.peach,
       fontFamily: FONTS.body,
-      fontSize: "16px",
-      lineSpacing: 8,
+      fontSize: "13px",
+      lineSpacing: 5,
       wordWrap: { width: GAME_WIDTH - LEFT * 2, useAdvancedWrap: true },
     });
 
-    this.add.text(CX, 318, "最後に...", {
+    this.add.text(CX, 352, "最後に...", {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.body,
-      fontSize: "17px",
+      fontSize: "15px",
     }).setOrigin(0.5);
-    this.add.text(CX, 352, "霊幻新隆、お誕生日おめでとう！🎉", {
+    this.add.text(CX, 384, "霊幻新隆、お誕生日おめでとう！🎉", {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "30px",
     }).setOrigin(0.5);
 
-    const startButton = this.add.rectangle(CX, 425, 260, 54, COLORS.orangeLight)
+    const startButton = this.add.rectangle(CX, 436, 240, 46, COLORS.orangeLight)
       .setStrokeStyle(2, COLORS.cream)
       .setInteractive({ useHandCursor: false });
-    this.add.text(CX, 425, "同意して始める", {
+    this.add.text(CX, 436, "同意して始める", {
       color: CSS_COLORS.indigo,
       fontFamily: FONTS.ui,
       fontSize: "24px",
