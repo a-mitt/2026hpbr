@@ -12,7 +12,7 @@ const BUTTON_GAP = 10;
 const PANEL_WIDTH = GAME_WIDTH / 2;
 const PANEL_X = GAME_WIDTH - PANEL_WIDTH;
 const TEXT_RESOLUTION = 2;
-const LIBRARY_TABS = ["誕プレ", "セリフ", "オブジェクト", "コレクション", "シークレット"];
+const LIBRARY_TABS = ["プレゼント", "セリフ", "オブジェクト", "コレクション", "シークレット"];
 
 // マップ画面に重ねる画面部品。左上＝タスク、右上＝ライブラリと設定のボタン。
 // 設定（右半分）かライブラリ（全画面）を開いている間は、マップ側の動きを止める。
@@ -274,10 +274,10 @@ export class HudScene extends Phaser.Scene {
       }).setOrigin(0.5),
       this.addText(
         GAME_WIDTH / 2,
-        GAME_HEIGHT - 46,
-        "記録はこのブラウザの中に保存されます。シークレットモードや、サイトデータを消したときは、残らないことがあります。",
+        GAME_HEIGHT - 52,
+        "記録は、お使いのブラウザの中だけに保存されます（Cookieは使いません）。別の端末・別のブラウザには引き継がれません。\nシークレットモードや、サイトデータを消したときは、消えることがあります。",
         13,
-        { color: CSS_COLORS.peach, align: "center", wordWrap: { width: GAME_WIDTH - 80, useAdvancedWrap: true } },
+        { color: CSS_COLORS.peach, align: "center", lineSpacing: 4, wordWrap: { width: GAME_WIDTH - 80, useAdvancedWrap: true } },
       ).setOrigin(0.5),
     );
 
