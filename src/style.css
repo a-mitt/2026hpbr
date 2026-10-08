@@ -1,0 +1,13 @@
+@font-face {
+  font-family: "851MakaPop";
+  src: url("/assets/fonts/851makapop.woff2") format("woff2"),
+    url("/assets/fonts/851makapop.ttf") format("truetype"),
+    url("/assets/fonts/851makapop.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mushin";
+  src: url("/assets/fonts/mushin.otf") format("opentype");
+  font-display: swap;
+}

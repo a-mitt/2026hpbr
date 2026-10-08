@@ -3,7 +3,10 @@ import { Player } from "../objects/Player.js";
 import { npcs } from "../data/npcs.js";
 import { dialogues } from "../data/dialogues.js";
 import { MAP_HEIGHT, MAP_WIDTH, TALK_DISTANCE } from "../constants.js";
+import { FONTS } from "../theme.js";
 import { CursorManager } from "../systems/CursorManager.js";
+import { DebugOverlay } from "../systems/DebugOverlay.js";
+import { VirtualStick } from "../systems/VirtualStick.js";
 
 export class FieldScene extends Phaser.Scene {
   constructor() {
@@ -26,6 +29,8 @@ export class FieldScene extends Phaser.Scene {
       space: Phaser.Input.Keyboard.KeyCodes.SPACE,
       enter: Phaser.Input.Keyboard.KeyCodes.ENTER,
     });
+    this.debugOverlay = new DebugOverlay(this);
+    this.virtualStick = new VirtualStick(this);
   }
 
   drawRoomPlaceholder() {
@@ -47,14 +52,15 @@ export class FieldScene extends Phaser.Scene {
     this.add.rectangle(MAP_WIDTH / 2, 33, MAP_WIDTH - 80, 44, 0x324d4c);
     this.add.text(MAP_WIDTH / 2, 33, "PARTY ROOM", {
       color: "#f5e3bd",
-      fontFamily: "Georgia, serif",
+      fontFamily: FONTS.body,
       fontSize: "19px",
     }).setOrigin(0.5);
   }
 
   update(_time, delta) {
-    this.player.update(delta);
+    this.player.update(delta, this.virtualStick.vector);
     this.updateNearbyNpc();
+    this.debugOverlay.update();
 
     if (
       this.closestNpc
@@ -90,6 +96,7 @@ export class FieldScene extends Phaser.Scene {
 
   startConversation(npc) {
     this.cursorManager.reset();
+    this.virtualStick.reset();
     this.scene.launch("DialogScene", {
       npc: { id: npc.id, name: npc.name, color: npc.color },
       lines: dialogues[npc.dialogueId],
