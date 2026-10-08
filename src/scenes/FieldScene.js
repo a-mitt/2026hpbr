@@ -4,6 +4,7 @@ import { npcs } from "../data/npcs.js";
 import { dialogues } from "../data/dialogues.js";
 import {
   DARK_ALPHA,
+  EXIT_DOOR,
   FURNITURE,
   MAP_IMAGES,
   PLAYER_START,
@@ -13,6 +14,7 @@ import {
   roomAt,
 } from "../data/mapLayout.js";
 import { FOOT_OFFSET, MAP_HEIGHT, MAP_WIDTH, TALK_DISTANCE } from "../constants.js";
+import { FONTS } from "../theme.js";
 import { CursorManager } from "../systems/CursorManager.js";
 import { DebugOverlay } from "../systems/DebugOverlay.js";
 import { VirtualStick } from "../systems/VirtualStick.js";
@@ -63,6 +65,10 @@ export class FieldScene extends Phaser.Scene {
     if (query?.get("debug")) {
       this.debugOverlay.toggle();
     }
+    if (query?.get("exit")) {
+      this.scene.launch("ExitPromptScene");
+      this.scene.pause();
+    }
     this.virtualStick = new VirtualStick(this);
     this.updateRoomDarkness(true);
 
@@ -87,6 +93,27 @@ export class FieldScene extends Phaser.Scene {
     this.toiletDoorZone = this.add.zone(hit.x, hit.y, hit.w, hit.h).setOrigin(0)
       .setInteractive();
     this.cursorManager.bind(this.toiletDoorZone, "talk", () => this.toggleToiletDoor());
+
+    // 階段の扉（絵はない）。近づくと「!」が出て、押すと終わりの選択が出る
+    const exit = EXIT_DOOR.hit;
+    this.exitDoorZone = this.add.zone(exit.x, exit.y, exit.w, exit.h).setOrigin(0).setInteractive();
+    this.cursorManager.bind(this.exitDoorZone, "talk", () => this.tryOpenExitPrompt());
+    this.exitHint = this.add.text(exit.x + 22, exit.y + 18, "!", {
+      color: "#ffe27a",
+      fontFamily: FONTS.body,
+      fontSize: "34px",
+      stroke: "#26343a",
+      strokeThickness: 5,
+      resolution: 3,
+    }).setOrigin(0.5).setDepth(80000).setVisible(false);
+    this.tweens.add({
+      targets: this.exitHint,
+      y: exit.y + 8,
+      duration: 360,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
 
     // 完成形（デバッグ表示のときだけ重ねて位置合わせに使う）
     this.goalOverlay = this.add.image(0, 0, "goal").setOrigin(0).setDepth(99999)
@@ -153,10 +180,31 @@ export class FieldScene extends Phaser.Scene {
     }
   }
 
+  nearExitDoor() {
+    const stand = EXIT_DOOR.standPoint;
+    return Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y + FOOT_OFFSET,
+      stand.x,
+      stand.y,
+    ) <= EXIT_DOOR.reach;
+  }
+
+  tryOpenExitPrompt() {
+    if (!this.nearExitDoor()) {
+      return;
+    }
+    this.cursorManager.reset();
+    this.virtualStick.reset();
+    this.scene.launch("ExitPromptScene");
+    this.scene.pause();
+  }
+
   update(_time, delta) {
     this.player.update(delta, this.virtualStick.vector);
     this.updateNearbyNpc();
     this.updateRoomDarkness();
+    this.exitHint.setVisible(this.nearExitDoor());
     this.debugOverlay.update();
 
     const confirmPressed = Phaser.Input.Keyboard.JustDown(this.confirmKeys.space)
@@ -165,6 +213,8 @@ export class FieldScene extends Phaser.Scene {
     if (confirmPressed) {
       if (this.closestNpc) {
         this.startConversation(this.closestNpc);
+      } else if (this.nearExitDoor()) {
+        this.tryOpenExitPrompt();
       } else {
         this.toggleToiletDoor();
       }

@@ -25,8 +25,7 @@ export const FURNITURE = [
 export const WALKABLE = [
   { x: 790, y: 305, w: 606, h: 753 }, // メイン
   { x: 446, y: 820, w: 354, h: 238 }, // キッチン前の床
-  { x: 190, y: 300, w: 100, h: 758 }, // 階段
-  { x: 190, y: 905, w: 256, h: 153 }, // 階段下〜玄関
+  { x: 330, y: 905, w: 116, h: 153 }, // 玄関（階段は通れない。扉の向こう）
   { x: 1432, y: 305, w: 306, h: 445 }, // 奥の部屋
   { x: 1390, y: 415, w: 50, h: 80 }, // メインと奥の部屋の出入口
 ];
@@ -69,6 +68,13 @@ export const TOILET_DOOR = {
   hit: { x: 645, y: 620, w: 127, h: 275 },
   standPoint: { x: 708, y: 925 },
   reach: 110,
+};
+
+// 玄関と階段の間の扉（横の壁なので絵はない）。調べると「終わりにして帰る？」が出る
+export const EXIT_DOOR = {
+  hit: { x: 300, y: 895, w: 40, h: 163 },
+  standPoint: { x: 352, y: 985 },
+  reach: 120,
 };
 
 export const PLAYER_START = { x: 1000, y: 720 };

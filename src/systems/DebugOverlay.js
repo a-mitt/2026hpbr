@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { FOOT_OFFSET, TALK_DISTANCE } from "../constants.js";
-import { BLOCKED, ROOMS, TOILET_DOOR_BLOCK, WALKABLE, doorState } from "../data/mapLayout.js";
+import { BLOCKED, ROOMS, EXIT_DOOR, TOILET_DOOR_BLOCK, WALKABLE, doorState } from "../data/mapLayout.js";
 
 // F2キーで表示を切り替える開発用の補助表示。
 // マップ座標のマウス位置と、クリック範囲・歩ける範囲・会話距離の枠を重ねて見せる。
@@ -59,6 +59,7 @@ export class DebugOverlay {
       const r = TOILET_DOOR_BLOCK;
       g.lineStyle(2, 0x55e5ff, 1).strokeRect(r.x, r.y, r.w, r.h);
     }
+    g.lineStyle(2, 0xffe27a, 1).strokeRect(EXIT_DOOR.hit.x, EXIT_DOOR.hit.y, EXIT_DOOR.hit.w, EXIT_DOOR.hit.h);
     for (const r of ROOMS) {
       g.lineStyle(2, 0xc07aff, 0.8).strokeRect(r.x, r.y, r.w, r.h);
     }

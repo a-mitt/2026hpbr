@@ -114,7 +114,7 @@ export class HudScene extends Phaser.Scene {
 
   bindButton(button, onClick) {
     this.cursorManager.bind(button, "button", () => {
-      if (this.scene.isActive("DialogScene")) {
+      if (this.scene.isActive("DialogScene") || this.scene.isActive("ExitPromptScene")) {
         return;
       }
       onClick();
