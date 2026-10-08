@@ -65,6 +65,9 @@ export class FieldScene extends Phaser.Scene {
     }
     this.virtualStick = new VirtualStick(this);
     this.updateRoomDarkness(true);
+
+    this.scene.launch("HudScene");
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scene.stop("HudScene"));
   }
 
   buildMap() {
