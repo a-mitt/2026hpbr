@@ -3,8 +3,9 @@ import { CursorManager } from "../systems/CursorManager.js";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 
-const CX = GAME_WIDTH / 2;
-const LEFT = 70;
+// レイアウト：左揃えの1カラム。大事な警告は札、規約は小さく読ませる
+const MARGIN = 56;
+const CONTENT_WIDTH = GAME_WIDTH - MARGIN * 2;
 const SMALL_NOTES = [
   "・公式様とは一切関係ありません。ファンゲームのため、バグや不具合が残っている場合があります。",
   "　恐れ入りますが、自己責任でのプレイをお願いいたします。",
@@ -24,52 +25,49 @@ export class IntroScene extends Phaser.Scene {
     this.cursorManager = new CursorManager(this.game);
     this.events.once("shutdown", () => this.cursorManager.reset());
 
-    this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.bg);
-    this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH - 40, GAME_HEIGHT - 40, COLORS.panel)
-      .setStrokeStyle(2, COLORS.orangeLight, 0.9);
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.bg);
 
-    this.add.text(CX, 46, "2026霊幻新隆おたおめ同人Webゲーム", {
+    this.add.text(MARGIN, 34, "2026霊幻新隆おたおめ同人Webゲーム", {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.ui,
-      fontSize: "36px",
-    }).setOrigin(0.5);
+      fontSize: "32px",
+      fontStyle: "bold",
+    });
 
-    // 大きく見せる重要事項
-    const important = (y, text, size, color) => this.add.text(CX, y, text, {
-      color,
-      fontFamily: FONTS.ui,
-      fontSize: `${size}px`,
-    }).setOrigin(0.5);
-    important(94, "⚠️ 本作は非公式の二次創作ゲームです", 28, CSS_COLORS.orangeLight);
-    important(130, "⚠️ 光の明滅表現があります。ご注意ください", 24, CSS_COLORS.orangeLight);
-    important(164, "📱 スマホで遊ぶ場合は【横画面推奨】です！", 22, CSS_COLORS.cream);
+    const cardWidth = (CONTENT_WIDTH - 24) / 2;
+    this.createWarningCard(MARGIN, 88, cardWidth, "非公式の二次創作ゲームです", "公式様とは一切関係ありません。");
+    this.createWarningCard(MARGIN + cardWidth + 24, 88, cardWidth, "光の明滅表現があります", "光に敏感な方はご注意ください。");
 
-    // 小さく読ませる注意・規約
-    this.add.text(LEFT, 194, SMALL_NOTES.join("\n"), {
+    this.createPill(MARGIN, 184, "スマホで遊ぶ場合は【横画面推奨】です");
+
+    this.add.text(MARGIN, 238, SMALL_NOTES.join("\n"), {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.body,
       fontSize: "13px",
       lineSpacing: 5,
-    });
+    }).setAlpha(0.9);
 
-    this.add.text(CX, 352, "最後に...", {
+    this.add.text(MARGIN, 400, "最後に...", {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.body,
-      fontSize: "15px",
-    }).setOrigin(0.5);
-    this.add.text(CX, 384, "霊幻新隆、お誕生日おめでとう！🎉", {
+      fontSize: "14px",
+    });
+    this.add.text(MARGIN, 420, "霊幻新隆、お誕生日おめでとう！🎉", {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "30px",
-    }).setOrigin(0.5);
+      fontStyle: "bold",
+    });
 
-    const startButton = this.add.rectangle(CX, 436, 240, 46, COLORS.orangeLight)
+    const buttonX = GAME_WIDTH - MARGIN - 130;
+    const startButton = this.add.rectangle(buttonX, 436, 260, 52, COLORS.orange)
       .setStrokeStyle(2, COLORS.cream)
       .setInteractive({ useHandCursor: false });
-    this.add.text(CX, 436, "同意して始める", {
-      color: CSS_COLORS.indigo,
+    this.add.text(buttonX, 436, "同意して始める", {
+      color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
-      fontSize: "24px",
+      fontSize: "22px",
+      fontStyle: "bold",
     }).setOrigin(0.5);
 
     const creditStyle = {
@@ -77,13 +75,53 @@ export class IntroScene extends Phaser.Scene {
       fontFamily: FONTS.body,
       fontSize: "12px",
     };
-    this.add.text(GAME_WIDTH - 40, 478, "by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", creditStyle)
-      .setOrigin(1, 1);
-    this.add.text(GAME_WIDTH - 40, 496, "ゲームコード:AI使用、絵:裏世界、Ver1.0-2026.10.10", creditStyle)
-      .setOrigin(1, 1);
+    this.add.text(GAME_WIDTH - MARGIN, 488, "by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", creditStyle)
+      .setOrigin(1, 1).setAlpha(0.85);
+    this.add.text(GAME_WIDTH - MARGIN, 506, "ゲームコード:AI使用、絵:裏世界、Ver1.0-2026.10.10", creditStyle)
+      .setOrigin(1, 1).setAlpha(0.85);
 
     this.cursorManager.bind(startButton, "button", () => {
       this.scene.start("BirthdayScene");
     });
+  }
+
+  // 警告札：丸バッジ＋見出し＋一言
+  createWarningCard(x, y, width, heading, sub) {
+    const height = 80;
+    this.add.graphics()
+      .fillStyle(COLORS.bgDark, 0.6)
+      .fillRoundedRect(x, y, width, height, 8);
+    this.add.circle(x + 36, y + height / 2, 18, COLORS.orange);
+    this.add.text(x + 36, y + height / 2, "!", {
+      color: CSS_COLORS.cream,
+      fontFamily: FONTS.ui,
+      fontSize: "24px",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+    this.add.text(x + 70, y + 16, heading, {
+      color: CSS_COLORS.orangeLight,
+      fontFamily: FONTS.ui,
+      fontSize: "24px",
+      fontStyle: "bold",
+    });
+    this.add.text(x + 70, y + 50, sub, {
+      color: CSS_COLORS.peach,
+      fontFamily: FONTS.body,
+      fontSize: "14px",
+    });
+  }
+
+  // 補足の札（藍の差し色）
+  createPill(x, y, label) {
+    const text = this.add.text(x + 18, y + 6, label, {
+      color: CSS_COLORS.cream,
+      fontFamily: FONTS.ui,
+      fontSize: "17px",
+      fontStyle: "bold",
+    }).setDepth(2);
+    this.add.graphics()
+      .fillStyle(COLORS.indigo, 1)
+      .fillRoundedRect(x, y, text.width + 36, 36, 18)
+      .setDepth(1);
   }
 }

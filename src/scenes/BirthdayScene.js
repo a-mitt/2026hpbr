@@ -159,8 +159,8 @@ export class BirthdayScene extends Phaser.Scene {
 
     if (this.litCandleCount === CANDLE_COUNT) {
       this.sceneState = "breathing";
-      this.statusText.setText("ふーっと吹き消そう");
-      this.hintText.setText("(ボタンを押してね)");
+      this.statusText.setVisible(false);
+      this.hintText.setVisible(false);
       this.showBlowButton();
     }
   }
@@ -170,7 +170,7 @@ export class BirthdayScene extends Phaser.Scene {
       .setStrokeStyle(2, COLORS.cream)
       .setDepth(85)
       .setInteractive({ useHandCursor: false });
-    this.blowButtonText = this.add.text(CX, GAME_HEIGHT - 42, "ふーっと吹き消す", {
+    this.blowButtonText = this.add.text(CX, GAME_HEIGHT - 42, "火を吹き消す", {
       color: CSS_COLORS.indigo,
       fontFamily: FONTS.ui,
       fontSize: "22px",
