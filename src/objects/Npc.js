@@ -2,6 +2,9 @@ import { FONTS } from "../theme.js";
 import { CHARACTER_SCALE, FOOT_OFFSET } from "../constants.js";
 import Phaser from "phaser";
 
+// 文字は大きめの解像度で描いておくと、拡大・縮小されても荒れない
+const TEXT_RESOLUTION = 3;
+
 export class Npc extends Phaser.GameObjects.Container {
   constructor(scene, npcData) {
     const parts = [
@@ -13,16 +16,19 @@ export class Npc extends Phaser.GameObjects.Container {
       scene.add.text(0, 36, npcData.name, {
         color: "#fff0d6",
         fontFamily: FONTS.body,
-        fontSize: "12px",
+        fontSize: "20px",
         stroke: "#26343a",
-        strokeThickness: 3,
-      }).setOrigin(0.5, 0),
+        strokeThickness: 5,
+        resolution: TEXT_RESOLUTION,
+        // コンテナの拡大を打ち消して、文字は等倍のままくっきり描く
+      }).setOrigin(0.5, 0).setScale(1 / CHARACTER_SCALE),
       scene.add.text(0, -58, "!", {
         color: "#ffe27a",
         fontFamily: FONTS.body,
         fontSize: "30px",
         stroke: "#26343a",
         strokeThickness: 4,
+        resolution: TEXT_RESOLUTION,
       }).setOrigin(0.5).setVisible(false),
     ];
 
