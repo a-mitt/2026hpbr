@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { DialogManager } from "../systems/DialogManager.js";
+import { COLORS, FONTS } from "../theme.js";
+import { GAME_HEIGHT, GAME_WIDTH, OFFSET_X, OFFSET_Y } from "../constants.js";
 
 export class DialogScene extends Phaser.Scene {
   constructor() {
@@ -7,32 +9,32 @@ export class DialogScene extends Phaser.Scene {
   }
 
   create({ npc, lines }) {
-    this.add.rectangle(400, 510, 800, 180, 0x111b20, 0.94)
-      .setStrokeStyle(2, 0xe7ca92, 0.95);
-    this.add.rectangle(106, 506, 98, 140, 0x666a6b)
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 90, GAME_WIDTH, 180, COLORS.bgDark, 0.94)
+      .setStrokeStyle(2, COLORS.orangeLight, 0.95);
+    this.add.rectangle(106 + OFFSET_X, 506 + OFFSET_Y, 98, 140, COLORS.panel)
       .setStrokeStyle(2, 0xc6c7bd, 0.9);
-    this.add.ellipse(106, 486, 36, 42, 0xf0bd8d);
-    this.add.ellipse(106, 476, 39, 18, 0x343038);
-    this.add.ellipse(106, 548, 58, 62, npc.color);
+    this.add.ellipse(106 + OFFSET_X, 486 + OFFSET_Y, 36, 42, 0xf0bd8d);
+    this.add.ellipse(106 + OFFSET_X, 476 + OFFSET_Y, 39, 18, 0x343038);
+    this.add.ellipse(106 + OFFSET_X, 548 + OFFSET_Y, 58, 62, npc.color);
 
-    this.add.rectangle(218, 439, 188, 34, 0x23363a)
-      .setStrokeStyle(1, 0xe7ca92, 0.9)
+    this.add.rectangle(218 + OFFSET_X, 439 + OFFSET_Y, 188, 34, COLORS.indigo)
+      .setStrokeStyle(1, COLORS.orangeLight, 0.9)
       .setOrigin(0, 0.5);
-    this.nameText = this.add.text(234, 439, "", {
+    this.nameText = this.add.text(234 + OFFSET_X, 439 + OFFSET_Y, "", {
       color: "#fff0d6",
-      fontFamily: "sans-serif",
+      fontFamily: FONTS.ui,
       fontSize: "19px",
     }).setOrigin(0, 0.5);
-    this.bodyText = this.add.text(232, 474, "", {
+    this.bodyText = this.add.text(232 + OFFSET_X, 474 + OFFSET_Y, "", {
       color: "#fff7e8",
-      fontFamily: "sans-serif",
+      fontFamily: FONTS.body,
       fontSize: "24px",
       lineSpacing: 10,
       wordWrap: { width: 530 },
     });
-    this.advanceHint = this.add.text(756, 570, "▼", {
+    this.advanceHint = this.add.text(756 + OFFSET_X, 570 + OFFSET_Y, "▼", {
       color: "#f3d38d",
-      fontFamily: "sans-serif",
+      fontFamily: FONTS.ui,
       fontSize: "21px",
     }).setOrigin(0.5).setVisible(false);
     this.tweens.add({
