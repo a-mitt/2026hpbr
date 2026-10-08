@@ -5,3 +5,9 @@
     url("/assets/fonts/851makapop.otf") format("opentype");
   font-display: swap;
 }
+
+@font-face {
+  font-family: "Mushin";
+  src: url("/assets/fonts/mushin.otf") format("opentype");
+  font-display: swap;
+}

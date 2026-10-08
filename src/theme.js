@@ -18,12 +18,18 @@ export const CSS_COLORS = {
   brownDark: "#1e0f08",
 };
 
-// IBM Plex Sans JP（npmの@fontsourceから同梱。OFL）。Windowsではメイリオにも切替可
-const SANS = '"IBM Plex Sans JP", Meiryo, "Hiragino Sans", "Yu Gothic", sans-serif';
+// 1枚目の注意書き＝IBM Plex Sans JP（npmの@fontsourceから同梱。OFL）
+const PLEX = '"IBM Plex Sans JP", Meiryo, "Hiragino Sans", "Yu Gothic", sans-serif';
 
 export const FONTS = {
-  ui: SANS,
-  body: SANS,
+  // 見出し・ボタン・ろうそく画面＝無心
+  ui: '"Mushin", "IBM Plex Sans JP", Meiryo, sans-serif',
+  // キャラのセリフ・マップ上の文字＝無心
+  body: '"Mushin", "IBM Plex Sans JP", Meiryo, sans-serif',
+  // 1枚目の注意書き本文
+  intro: PLEX,
+  // 「霊幻新隆」の文字だけ少し大きく表示する用（フォントは無心）
+  name: '"Mushin", "IBM Plex Sans JP", Meiryo, sans-serif',
   // HAPPY BIRTHDAY！専用（851マカポップ）
   title: '"851MakaPop", "IBM Plex Sans JP", Meiryo, sans-serif',
 };

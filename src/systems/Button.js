@@ -11,7 +11,6 @@ export function createButton(scene, x, y, width, height, label, fontSize = 24) {
     color: CSS_COLORS.cream,
     fontFamily: FONTS.ui,
     fontSize: `${fontSize}px`,
-    fontStyle: "bold",
   }).setOrigin(0.5);
 
   return scene.add.container(x, y, [shadow, body, inner, text])

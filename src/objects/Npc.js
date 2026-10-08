@@ -20,7 +20,6 @@ export class Npc extends Phaser.GameObjects.Container {
         color: "#ffe27a",
         fontFamily: FONTS.body,
         fontSize: "30px",
-        fontStyle: "bold",
         stroke: "#26343a",
         strokeThickness: 4,
       }).setOrigin(0.5).setVisible(false),

@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { CursorManager } from "../systems/CursorManager.js";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { createButton } from "../systems/Button.js";
+import { addMixedText } from "../systems/mixedText.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 
 // レイアウト：左揃えの1カラム。大事な警告は札、規約は小さく読ませる
@@ -28,11 +29,14 @@ export class IntroScene extends Phaser.Scene {
 
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.bg);
 
-    this.add.text(MARGIN, 34, "2026霊幻新隆おたおめ同人Webゲーム", {
+    addMixedText(this, MARGIN, 34, [
+      { text: "2026" },
+      { text: "霊幻新隆", fontFamily: FONTS.name, fontSize: "37px" },
+      { text: "おたおめ同人Webゲーム" },
+    ], {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.ui,
       fontSize: "32px",
-      fontStyle: "bold",
     });
 
     const cardWidth = (CONTENT_WIDTH - 24) / 2;
@@ -43,28 +47,30 @@ export class IntroScene extends Phaser.Scene {
 
     this.add.text(MARGIN, 238, SMALL_NOTES.join("\n"), {
       color: CSS_COLORS.peach,
-      fontFamily: FONTS.body,
+      fontFamily: FONTS.intro,
       fontSize: "13px",
       lineSpacing: 5,
     }).setAlpha(0.9);
 
     this.add.text(MARGIN, 400, "最後に...", {
       color: CSS_COLORS.peach,
-      fontFamily: FONTS.body,
+      fontFamily: FONTS.intro,
       fontSize: "14px",
     });
-    this.add.text(MARGIN, 420, "霊幻新隆、お誕生日おめでとう！🎉", {
+    addMixedText(this, MARGIN, 420, [
+      { text: "霊幻新隆", fontFamily: FONTS.name, fontSize: "31px" },
+      { text: "、お誕生日おめでとう！🎉" },
+    ], {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
-      fontSize: "30px",
-      fontStyle: "bold",
+      fontSize: "27px",
     });
 
     const startButton = createButton(this, GAME_WIDTH - MARGIN - 175, 432, 350, 72, "同意して始める", 30);
 
     const creditStyle = {
       color: CSS_COLORS.peach,
-      fontFamily: FONTS.body,
+      fontFamily: FONTS.intro,
       fontSize: "12px",
     };
     this.add.text(GAME_WIDTH - MARGIN, 488, "by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", creditStyle)
@@ -92,17 +98,15 @@ export class IntroScene extends Phaser.Scene {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "24px",
-      fontStyle: "bold",
     }).setOrigin(0.5);
     this.add.text(x + 76, y + 16, heading, {
       color: CSS_COLORS.orangeLight,
       fontFamily: FONTS.ui,
       fontSize: "24px",
-      fontStyle: "bold",
     });
     this.add.text(x + 76, y + 50, sub, {
       color: CSS_COLORS.peach,
-      fontFamily: FONTS.body,
+      fontFamily: FONTS.intro,
       fontSize: "14px",
     });
   }
@@ -112,8 +116,7 @@ export class IntroScene extends Phaser.Scene {
     const text = this.add.text(x + 18, y + 6, label, {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
-      fontSize: "17px",
-      fontStyle: "bold",
+      fontSize: "20px",
     }).setDepth(2);
     this.add.graphics()
       .fillStyle(COLORS.indigo, 1)

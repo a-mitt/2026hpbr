@@ -9,6 +9,7 @@ const loadFonts = Promise.all([
   document.fonts.load('400 24px "IBM Plex Sans JP"', "あ"),
   document.fonts.load('700 24px "IBM Plex Sans JP"', "あ"),
   document.fonts.load('24px "851MakaPop"'),
+  document.fonts.load('24px "Mushin"', "あ"),
 ]).catch(() => {});
 const timeout = new Promise((resolve) => setTimeout(resolve, 1500));
 
