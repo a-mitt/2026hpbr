@@ -25,6 +25,10 @@ export class VirtualStick {
       if (this.pointerId !== null || currentlyOver.length > 0) {
         return;
       }
+      // 画面上のボタン・パネルを押したときは歩かない
+      if (scene.scene.get("HudScene")?.isOverUi?.(pointer)) {
+        return;
+      }
       this.pointerId = pointer.id;
       this.origin = { x: pointer.x, y: pointer.y };
       this.base.setPosition(pointer.x, pointer.y).setVisible(true);

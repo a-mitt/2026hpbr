@@ -4,19 +4,11 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { createButton } from "../systems/Button.js";
 import { addMixedText } from "../systems/mixedText.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
+import { NOTICE_LINES } from "../data/notices.js";
 
 // レイアウト：左揃えの1カラム。大事な警告は札、規約は小さく読ませる
 const MARGIN = 56;
 const CONTENT_WIDTH = GAME_WIDTH - MARGIN * 2;
-const SMALL_NOTES = [
-  "・公式様とは一切関係ありません。ファンゲームのため、バグや不具合が残っている場合があります。",
-  "　恐れ入りますが、自己責任でのプレイをお願いいたします。",
-  "・不具合を見つけた場合は、「設定」画面の【報告フォーム】から教えていただけると嬉しいです！",
-  "・スクショ・SNS投稿・配信などは全てOKです。二次創作のため、公式様や他の方のご迷惑にならないようご配慮ください。",
-  "　これらによって生じた損害等について、製作者は責任を負いません。",
-  "・推奨環境：最新版のChrome / Safari / Edge。本作は個人情報の取得・保存を行いません。",
-  "・「同意して始める」を押すと、上記の注意・規約を読み、同意したものとみなします。",
-];
 
 export class IntroScene extends Phaser.Scene {
   constructor() {
@@ -45,7 +37,7 @@ export class IntroScene extends Phaser.Scene {
 
     this.createPill(MARGIN, 184, "スマホで遊ぶ場合は【横画面推奨】です");
 
-    this.add.text(MARGIN, 238, SMALL_NOTES.join("\n"), {
+    this.add.text(MARGIN, 238, NOTICE_LINES.join("\n"), {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.intro,
       fontSize: "13px",

@@ -13,4 +13,15 @@ const loadFonts = Promise.all([
 ]).catch(() => {});
 const timeout = new Promise((resolve) => setTimeout(resolve, 1500));
 
-Promise.race([loadFonts, timeout]).then(() => new Phaser.Game(gameConfig));
+Promise.race([loadFonts, timeout]).then(() => {
+  const game = new Phaser.Game(gameConfig);
+
+  // 開発中だけ：?scene=FieldScene で途中の画面から始める（本番ビルドでは無効）
+  const startScene = import.meta.env.DEV && new URLSearchParams(location.search).get("scene");
+  if (startScene) {
+    game.events.once("ready", () => {
+      game.scene.stop("IntroScene");
+      game.scene.start(startScene);
+    });
+  }
+});

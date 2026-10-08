@@ -5,13 +5,14 @@ PC（VS Code / ターミナル）とスマホ（claude.ai/code）の両方から
 ## プロジェクト概要
 
 - 誕生日お祝いミニRPG（Phaser 3 + Vite、JavaScript）。
-- 流れ：`IntroScene`（説明・同意）→ `BirthdayScene`（ろうそく点火・お祝い）→ `FieldScene`（部屋マップを歩きNPC 12人と会話）＋ `DialogScene`（会話表示）。
+- 流れ：`IntroScene`（説明・同意）→ `BirthdayScene`（ろうそく点火・お祝い）→ `FieldScene`（横長マップを歩きNPC 7人と会話）＋ `HudScene`（左上タスク・右上ライブラリ/設定）＋ `DialogScene`（会話表示）＋ `ExitPromptScene`（終わりの選択）。
 - 公開：`main` へのpushで GitHub Actions（`.github/workflows/deploy.yml`）が GitHub Pages にデプロイ（`vite.config.js` の `base: "/2026hpbr/"`）。
-- 現状：Phase 4完了。台詞・キャラ画像・マップ画像は仮。正式素材が決まり次第差し替え。
+- 現状：マップは正式画像（1920×1080）に差し替え済み。台詞・キャラ画像・一枚絵は仮。ライブラリの中身・保存、エンディングは未実装。公開予定は2026-10-10。
+- リポジトリは**公開**。下書きの文面やネタバレを `docs/` に置く前にユーザーへ確認する。
 
 ## 最初に読む資料
 
-1. `docs/handoff.md` — 引き継ぎ書（決定事項：フォント・サイズ・配色・文面・マップ方針）
+1. `docs/handoff.md` — 引き継ぎ書（決定事項：フォント・マップ・画面部品・開発用URL・未解決一覧）。2026-10-09に全面更新
 2. `docs/progress.md` — 進捗メモ（前回の「次にやること」から再開する）
 3. `README.md` — 構成・起動方法・ファイルの役割・現在の状態
 4. 仕様書類：`ゲーム仕様書.md` / `ゲーム制作計画.md` / `ゲーム制作メモ.md`

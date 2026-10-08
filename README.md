@@ -34,10 +34,11 @@ npm run build
 - `src/config.js`：画面サイズ、背景色、拡大縮小方法、最初のシーン。
 - `src/theme.js`：配色（濃いオレンジ・茶＋藍の差し色）とフォント名。
 - `src/style.css`：フォント読み込み（IBM Plex Sans JP は npm 同梱、851マカポップのみファイルを置く）。ファイルは `public/assets/fonts/` に置く（詳細はそこのREADME）。
-- `src/constants.js`：表示窓（960×540）・マップ全体（960×1200）のサイズとプレイヤー移動速度。`OFFSET_X/Y` は旧800×600レイアウトからのずらし量。
+- `src/constants.js`：表示窓（960×540）・マップ全体（1920×1080）のサイズ、キャラの足元までの距離（FOOT_OFFSET）、プレイヤー移動速度。`OFFSET_X/Y` は旧800×600レイアウトからのずらし量。
 - `src/scenes/IntroScene.js`：作品説明・注意書き・同意画面。
 - `src/scenes/BirthdayScene.js`：ろうそく点火からお祝い画面までの演出。
-- `src/scenes/FieldScene.js`：部屋型の仮マップと登場オブジェクト。
+- `src/scenes/FieldScene.js`：マップ画像の配置、家具の前後、部屋ごとの暗さ、トイレのドア、カメラ（常にキャラが中央）。
+- `src/data/mapLayout.js`：マップの座標データ（歩ける範囲・通れない範囲・部屋・家具のsortY・トイレのドア）。位置合わせはここを調整する。
 - `src/objects/Player.js`：矢印/WASDで動かすプレイヤー。
 - `src/objects/Npc.js`：番号付き仮NPCの表示。
 - `src/data/npcs.js`：NPCの識別子・仮名・色・配置座標。
@@ -46,8 +47,8 @@ npm run build
 - `src/systems/CursorManager.js`：ろうそく・NPC・調べられる物に応じたカーソル表示。仮SVGを画像に差し替える場所。
 - `src/data/npcs.json`：NPCの名前・位置・色・セリフ（`lines`）。正式な名前とセリフはここで編集。
 - `src/data/dialogues.js`：`npcs.json` から会話データを作る読み込み用。通常は編集しない。
-- `src/systems/DebugOverlay.js`：マップでF2キーを押すと、マウス座標・クリック範囲・歩ける範囲を表示する開発用の補助。
-- `public/assets/`：素材置き場。`map/`（背景）、`npc/`（キャラ）、`items/`（調べる物）、`birthday/`（誕生日演出）、`ui/`（カーソルなど）。
+- `src/systems/DebugOverlay.js`：マップでF2キーを押すと、マウス座標・クリック範囲・歩ける/通れない範囲・部屋の範囲と、完成形の薄い重ね絵を表示する開発用の補助。
+- `public/assets/`：素材置き場。`map/`（マップ背景と家具パーツ。1920×1080の透明PNG）、`npc/`（キャラ）、`items/`（調べる物）、`birthday/`（誕生日演出）、`ui/`（カーソルなど）。
 - `package.json`：実行コマンドとPhaser/Vite依存関係。
 - `package-lock.json`：インストールした依存関係の固定情報。
 - `public/assets/`：後で画像などの素材を置く場所。
