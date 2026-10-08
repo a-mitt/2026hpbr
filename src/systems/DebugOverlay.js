@@ -61,7 +61,12 @@ export class DebugOverlay {
 
     // NPCのクリック範囲と会話距離
     for (const npc of scene.npcCharacters) {
-      g.lineStyle(2, 0x55ff88, 1).strokeRect(npc.x - 27, npc.y - 48, 54, 96);
+      g.lineStyle(2, 0x55ff88, 1).strokeRect(
+        npc.x - npc.displayWidth / 2,
+        npc.y - npc.displayHeight / 2,
+        npc.displayWidth,
+        npc.displayHeight,
+      );
       g.lineStyle(1, 0xffe27a, 0.7).strokeCircle(npc.x, npc.y, TALK_DISTANCE);
     }
 

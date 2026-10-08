@@ -1,5 +1,5 @@
 import { FONTS } from "../theme.js";
-import { FOOT_OFFSET } from "../constants.js";
+import { CHARACTER_SCALE, FOOT_OFFSET } from "../constants.js";
 import Phaser from "phaser";
 
 export class Npc extends Phaser.GameObjects.Container {
@@ -31,6 +31,7 @@ export class Npc extends Phaser.GameObjects.Container {
       new Phaser.Geom.Rectangle(-27, -48, 54, 96),
       Phaser.Geom.Rectangle.Contains,
     );
+    this.setScale(CHARACTER_SCALE);
     this.id = npcData.id;
     this.name = npcData.name;
     this.dialogueId = npcData.id;

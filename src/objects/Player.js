@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { FOOT_OFFSET, PLAYER_SPEED } from "../constants.js";
+import { CHARACTER_SCALE, FOOT_OFFSET, PLAYER_SPEED } from "../constants.js";
 import { canStand } from "../data/mapLayout.js";
 
 export class Player extends Phaser.GameObjects.Container {
@@ -13,6 +13,7 @@ export class Player extends Phaser.GameObjects.Container {
     ];
 
     super(scene, x, y, parts);
+    this.setScale(CHARACTER_SCALE);
     scene.add.existing(this);
 
     this.speed = PLAYER_SPEED;
