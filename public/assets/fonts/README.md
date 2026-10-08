@@ -1,9 +1,4 @@
 # フォント置き場
 
-次のファイル名で配置してください（ttf / otf / woff2 のどれでも可）。ライセンスは配布元の規約を確認。
-
-- 夜もすがらフォント（見出し・ボタン）→ `yomosugara.ttf`
-- 無心フォント（会話文・説明文）→ `mushin.ttf`
-- 851マカポップ（HAPPY BIRTHDAY！）→ `851makapop.ttf`
-
-未配置の間は代替フォントで表示されます。
+- IBM Plex Sans JP は npm（`@fontsource/ibm-plex-sans-jp`）から自動で同梱されます。ここに置く必要はありません。
+- 851マカポップ（HAPPY BIRTHDAY！専用）だけ、`851makapop.ttf`（または `.otf` / `.woff2`）をここに置いてください。未配置の間は IBM Plex Sans JP で表示されます。

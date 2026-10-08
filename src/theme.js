@@ -18,10 +18,12 @@ export const CSS_COLORS = {
   brownDark: "#1e0f08",
 };
 
+// IBM Plex Sans JP（npmの@fontsourceから同梱。OFL）。Windowsではメイリオにも切替可
+const SANS = '"IBM Plex Sans JP", Meiryo, "Hiragino Sans", "Yu Gothic", sans-serif';
+
 export const FONTS = {
-  // 見出し・ボタン・案内（夜もすがらフォント。非収録の漢字は代替フォントに自動で切替）
-  ui: '"Yomosugara", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif',
-  // 会話文・説明文（無心フォント）
-  body: '"Mushin", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif',
-  title: '"851MakaPop", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", sans-serif',
+  ui: SANS,
+  body: SANS,
+  // HAPPY BIRTHDAY！専用（851マカポップ）
+  title: '"851MakaPop", "IBM Plex Sans JP", Meiryo, sans-serif',
 };

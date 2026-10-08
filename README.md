@@ -33,7 +33,7 @@ npm run build
 - `src/main.js`：Phaserゲームの起動。
 - `src/config.js`：画面サイズ、背景色、拡大縮小方法、最初のシーン。
 - `src/theme.js`：配色（濃いオレンジ・茶＋藍の差し色）とフォント名。
-- `src/style.css`：フォント読み込み（夜もすがら・無心・851マカポップ）。ファイルは `public/assets/fonts/` に置く（詳細はそこのREADME）。
+- `src/style.css`：フォント読み込み（IBM Plex Sans JP は npm 同梱、851マカポップのみファイルを置く）。ファイルは `public/assets/fonts/` に置く（詳細はそこのREADME）。
 - `src/constants.js`：表示窓（960×540）・マップ全体（960×1200）のサイズとプレイヤー移動速度。`OFFSET_X/Y` は旧800×600レイアウトからのずらし量。
 - `src/scenes/IntroScene.js`：作品説明・注意書き・同意画面。
 - `src/scenes/BirthdayScene.js`：ろうそく点火からお祝い画面までの演出。
