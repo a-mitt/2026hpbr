@@ -47,8 +47,13 @@ export const BLOCKED = [
   { x: 1065, y: 1000, w: 265, h: 62 }, // ロングソファ
   { x: 1360, y: 900, w: 55, h: 104 }, // テレビ台
   { x: 775, y: 470, w: 70, h: 136 }, // 冷蔵庫
-  { x: 645, y: 450, w: 127, h: 445 }, // トイレ（ドア含む）
+  { x: 625, y: 815, w: 25, h: 80 }, // トイレの左の壁
+  { x: 767, y: 815, w: 25, h: 80 }, // トイレの右の壁
 ];
+
+// トイレのドアが閉まっている間だけ通れない範囲（開けると中に入れる）
+export const TOILET_DOOR_BLOCK = { x: 650, y: 815, w: 117, h: 80 };
+export const doorState = { toiletOpen: false };
 
 // 部屋ごとの暗さ。いない部屋は暗くなる
 export const ROOMS = [
@@ -59,7 +64,7 @@ export const ROOMS = [
 ];
 export const DARK_ALPHA = 0.7;
 
-// トイレのドア：近づいて決定/クリックで取り払われて中が見える
+// トイレのドア：外から近づいて決定/クリックで開け閉めできる（開けると中に入れる）
 export const TOILET_DOOR = {
   hit: { x: 645, y: 620, w: 127, h: 275 },
   standPoint: { x: 708, y: 925 },
@@ -75,7 +80,8 @@ export function canStand(footX, footY) {
   return [-FOOT_HALF_WIDTH, 0, FOOT_HALF_WIDTH].every((dx) => {
     const x = footX + dx;
     return WALKABLE.some((r) => insideRect(r, x, footY))
-      && !BLOCKED.some((r) => insideRect(r, x, footY));
+      && !BLOCKED.some((r) => insideRect(r, x, footY))
+      && (doorState.toiletOpen || !insideRect(TOILET_DOOR_BLOCK, x, footY));
   });
 }
 

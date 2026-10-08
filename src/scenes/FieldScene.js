@@ -9,6 +9,7 @@ import {
   PLAYER_START,
   ROOMS,
   TOILET_DOOR,
+  doorState,
   roomAt,
 } from "../data/mapLayout.js";
 import { FOOT_OFFSET, MAP_HEIGHT, MAP_WIDTH, TALK_DISTANCE } from "../constants.js";
@@ -41,6 +42,7 @@ export class FieldScene extends Phaser.Scene {
   create() {
     this.cursorManager = new CursorManager(this.game);
     this.toiletDoorOpened = false;
+    doorState.toiletOpen = false;
     this.currentRoomId = null;
     this.buildMap();
 
@@ -81,7 +83,7 @@ export class FieldScene extends Phaser.Scene {
     const hit = TOILET_DOOR.hit;
     this.toiletDoorZone = this.add.zone(hit.x, hit.y, hit.w, hit.h).setOrigin(0)
       .setInteractive();
-    this.cursorManager.bind(this.toiletDoorZone, "talk", () => this.tryOpenToiletDoor());
+    this.cursorManager.bind(this.toiletDoorZone, "talk", () => this.toggleToiletDoor());
 
     // 完成形（デバッグ表示のときだけ重ねて位置合わせに使う）
     this.goalOverlay = this.add.image(0, 0, "goal").setOrigin(0).setDepth(99999)
@@ -113,30 +115,39 @@ export class FieldScene extends Phaser.Scene {
     }
   }
 
-  // 足元がドアの前（reach以内）にいるときだけ開けられる
-  nearToiletDoor() {
+  // 足元がトイレのドアの前（reach以内）にいるとき、外からだけ開け閉めできる
+  canUseToiletDoor() {
     const stand = TOILET_DOOR.standPoint;
-    return Phaser.Math.Distance.Between(
+    const footY = this.player.y + FOOT_OFFSET;
+    const isOutside = footY >= TOILET_DOOR.hit.y + TOILET_DOOR.hit.h;
+    return isOutside && Phaser.Math.Distance.Between(
       this.player.x,
-      this.player.y + FOOT_OFFSET,
+      footY,
       stand.x,
       stand.y,
     ) <= TOILET_DOOR.reach;
   }
 
-  tryOpenToiletDoor() {
-    if (this.toiletDoorOpened || !this.nearToiletDoor()) {
+  toggleToiletDoor() {
+    if (!this.canUseToiletDoor()) {
       return;
     }
-    this.toiletDoorOpened = true;
-    this.toiletDoorZone.disableInteractive();
+    this.toiletDoorOpened = !this.toiletDoorOpened;
+    doorState.toiletOpen = this.toiletDoorOpened;
     this.cursorManager.reset();
-    this.tweens.add({
-      targets: this.toiletDoor,
-      alpha: 0,
-      duration: 300,
-      onComplete: () => this.toiletDoor.destroy(),
-    });
+    this.tweens.killTweensOf(this.toiletDoor);
+
+    if (this.toiletDoorOpened) {
+      this.tweens.add({
+        targets: this.toiletDoor,
+        alpha: 0,
+        duration: 300,
+        onComplete: () => this.toiletDoor.setVisible(false),
+      });
+    } else {
+      this.toiletDoor.setVisible(true);
+      this.tweens.add({ targets: this.toiletDoor, alpha: 1, duration: 300 });
+    }
   }
 
   update(_time, delta) {
@@ -152,7 +163,7 @@ export class FieldScene extends Phaser.Scene {
       if (this.closestNpc) {
         this.startConversation(this.closestNpc);
       } else {
-        this.tryOpenToiletDoor();
+        this.toggleToiletDoor();
       }
     }
   }
