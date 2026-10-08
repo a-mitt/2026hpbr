@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { CursorManager } from "../systems/CursorManager.js";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
+import { createButton } from "../systems/Button.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 
 // レイアウト：左揃えの1カラム。大事な警告は札、規約は小さく読ませる
@@ -59,16 +60,7 @@ export class IntroScene extends Phaser.Scene {
       fontStyle: "bold",
     });
 
-    const buttonX = GAME_WIDTH - MARGIN - 130;
-    const startButton = this.add.rectangle(buttonX, 436, 260, 52, COLORS.orange)
-      .setStrokeStyle(2, COLORS.cream)
-      .setInteractive({ useHandCursor: false });
-    this.add.text(buttonX, 436, "同意して始める", {
-      color: CSS_COLORS.cream,
-      fontFamily: FONTS.ui,
-      fontSize: "22px",
-      fontStyle: "bold",
-    }).setOrigin(0.5);
+    const startButton = createButton(this, GAME_WIDTH - MARGIN - 175, 432, 350, 72, "同意して始める", 30);
 
     const creditStyle = {
       color: CSS_COLORS.peach,
@@ -91,20 +83,24 @@ export class IntroScene extends Phaser.Scene {
     this.add.graphics()
       .fillStyle(COLORS.bgDark, 0.6)
       .fillRoundedRect(x, y, width, height, 8);
-    this.add.circle(x + 36, y + height / 2, 18, COLORS.orange);
-    this.add.text(x + 36, y + height / 2, "!", {
+    const cx = x + 38;
+    const cy = y + height / 2;
+    this.add.graphics()
+      .fillStyle(COLORS.orange, 1)
+      .fillTriangle(cx, cy - 22, cx - 25, cy + 18, cx + 25, cy + 18);
+    this.add.text(cx, cy + 4, "!", {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "24px",
       fontStyle: "bold",
     }).setOrigin(0.5);
-    this.add.text(x + 70, y + 16, heading, {
+    this.add.text(x + 76, y + 16, heading, {
       color: CSS_COLORS.orangeLight,
       fontFamily: FONTS.ui,
       fontSize: "24px",
       fontStyle: "bold",
     });
-    this.add.text(x + 70, y + 50, sub, {
+    this.add.text(x + 76, y + 50, sub, {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.body,
       fontSize: "14px",

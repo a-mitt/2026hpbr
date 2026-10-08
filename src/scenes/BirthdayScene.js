@@ -1,12 +1,13 @@
 import Phaser from "phaser";
 import { CursorManager } from "../systems/CursorManager.js";
 import { GAME_HEIGHT, GAME_WIDTH, OFFSET_Y } from "../constants.js";
+import { createButton } from "../systems/Button.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 
 const CX = GAME_WIDTH / 2;
 const CANDLE_COUNT = 8;
 const CANDLE_SPACING = 40;
-const CAKE_Y = 420 + OFFSET_Y;
+const CAKE_Y = 330;
 
 export class BirthdayScene extends Phaser.Scene {
   constructor() {
@@ -21,7 +22,6 @@ export class BirthdayScene extends Phaser.Scene {
     this.litCandleCount = 0;
     this.sceneState = "lighting";
     this.blowButton = null;
-    this.blowButtonText = null;
     this.venueButton = null;
 
     this.createGlowTexture();
@@ -166,18 +166,10 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   showBlowButton() {
-    this.blowButton = this.add.rectangle(CX, GAME_HEIGHT - 42, 240, 48, COLORS.orangeLight)
-      .setStrokeStyle(2, COLORS.cream)
-      .setDepth(85)
-      .setInteractive({ useHandCursor: false });
-    this.blowButtonText = this.add.text(CX, GAME_HEIGHT - 42, "火を吹き消す", {
-      color: CSS_COLORS.indigo,
-      fontFamily: FONTS.ui,
-      fontSize: "22px",
-    }).setOrigin(0.5).setDepth(86);
+    this.blowButton = createButton(this, CX, GAME_HEIGHT - 46, 300, 60, "火を吹き消す", 26)
+      .setDepth(85);
 
     this.addIntroObject(this.blowButton, 85);
-    this.addIntroObject(this.blowButtonText, 86);
     this.counterText.setVisible(false);
     this.cursorManager.bind(this.blowButton, "button", () => {
       if (this.sceneState === "breathing") {
@@ -190,7 +182,6 @@ export class BirthdayScene extends Phaser.Scene {
     this.sceneState = "blowing";
     this.blowButton.disableInteractive();
     this.blowButton.setVisible(false);
-    this.blowButtonText.setVisible(false);
     this.cursorManager.reset();
     this.time.delayedCall(500, () => this.extinguishCandles());
   }
@@ -283,14 +274,9 @@ export class BirthdayScene extends Phaser.Scene {
     this.tweens.killTweensOf(this.pressText);
     this.pressText.setVisible(false);
 
-    this.venueButton = this.add.rectangle(CX, GAME_HEIGHT - 60, 320, 60, COLORS.orange)
-      .setStrokeStyle(3, COLORS.cream)
-      .setDepth(41);
-    this.add.text(CX, GAME_HEIGHT - 60, "誕生日会場に行く", {
-      color: CSS_COLORS.cream,
-      fontFamily: FONTS.ui,
-      fontSize: "28px",
-    }).setOrigin(0.5).setDepth(42);
+    this.venueButton = createButton(this, CX, GAME_HEIGHT - 62, 380, 68, "誕生日会場に行く", 28)
+      .setDepth(41)
+      .disableInteractive();
 
     // 同じ押下で即遷移しないよう、少し待ってから押せるようにする
     this.time.delayedCall(300, () => {
