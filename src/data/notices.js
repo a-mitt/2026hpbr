@@ -61,4 +61,4 @@ export const CREDIT_LINES = t(
 );
 
 // バグ報告フォーム（Googleフォーム）のURL。フォームを作ったらここに入れる
-export const REPORT_FORM_URL = "";
+export const REPORT_FORM_URL = "https://forms.gle/RL7cyUeD4p7vVHjD8";
