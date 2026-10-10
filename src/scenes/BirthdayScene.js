@@ -3,15 +3,41 @@ import { CursorManager } from "../systems/CursorManager.js";
 import { GAME_HEIGHT, GAME_WIDTH, OFFSET_Y } from "../constants.js";
 import { createButton } from "../systems/Button.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
+import { t } from "../systems/i18n.js";
+import { save } from "../systems/save.js";
 
 const CX = GAME_WIDTH / 2;
-const CANDLE_COUNT = 8;
-const CANDLE_SPACING = 40;
-const CAKE_Y = 330;
+const BIRTHDAY_ASSET_DIR = `${import.meta.env.BASE_URL}assets/birthday/`;
+// 絵は 1280×720。画面（960×540）に合わせて 0.75 倍で置く
+const ART_SCALE = 0.75;
+// お祝いの一枚絵は小さめに置く（見出しの下）
+const PICTURE_SCALE = 0.5;
+// ケーキの絵に描かれているろうそく（絵の中の座標：中心x、上端y）。火はその上に重ねる
+const CANDLES = [
+  { x: 336, top: 238 },
+  { x: 449, top: 202 },
+  { x: 515, top: 311 },
+  { x: 762, top: 315 },
+  { x: 803, top: 209 },
+  { x: 919, top: 247 },
+];
+const CANDLE_COUNT = CANDLES.length;
+// 口の絵（1280×720）の中の口の中心。ここを中心に小さくする
+const MOUTH_CENTER = { x: 650, y: 34 };
+const MOUTH_BLOW_MS = 700; // 開いた口から、小さく閉じるまで
+const MOUTH_END_SCALE = 0.45; // 最後の大きさ（元の絵に対する倍率）
 
 export class BirthdayScene extends Phaser.Scene {
   constructor() {
     super("BirthdayScene");
+  }
+
+  preload() {
+    this.load.setPath(BIRTHDAY_ASSET_DIR);
+    this.load.image("cake", "cake.png");
+    this.load.image("mouth_open", "mouth_open.png");
+    this.load.image("mouth_closed", "mouth_closed.png");
+    this.load.image("birthday_picture", "birthday.png");
   }
 
   create() {
@@ -57,28 +83,19 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createCake() {
-    this.addIntroObject(this.add.rectangle(CX, CAKE_Y + 62, 428, 126, COLORS.orange), 10);
-    this.addIntroObject(this.add.rectangle(CX, CAKE_Y, 440, 24, COLORS.peach), 11);
-    this.addIntroObject(this.add.rectangle(CX, CAKE_Y + 96, 452, 14, COLORS.orangeLight), 12);
-    this.addIntroObject(this.add.ellipse(CX, CAKE_Y, 438, 24, COLORS.cream), 13);
-    this.addIntroObject(
-      this.add.text(CX, CAKE_Y + 44, "HAPPY DAY", {
-        color: CSS_COLORS.cream,
-        fontFamily: FONTS.title,
-        fontSize: "22px",
-      }).setOrigin(0.5),
-      14,
-    );
+    this.addIntroObject(this.add.image(0, 0, "cake").setOrigin(0).setScale(ART_SCALE), 10);
+    // 息を吹きかける口（全部に火がついたら出る）
+    this.mouth = this.add.image(MOUTH_CENTER.x * ART_SCALE, MOUTH_CENTER.y * ART_SCALE, "mouth_open")
+      .setOrigin(MOUTH_CENTER.x / 1280, MOUTH_CENTER.y / 720).setScale(ART_SCALE).setVisible(false);
+    this.addIntroObject(this.mouth, 70);
   }
 
   createCandles() {
-    const firstCandleX = CX - ((CANDLE_COUNT - 1) * CANDLE_SPACING) / 2;
-    const flameY = CAKE_Y - 45;
-
-    for (let index = 0; index < CANDLE_COUNT; index += 1) {
-      const x = firstCandleX + index * CANDLE_SPACING;
-      const candleBody = this.add.rectangle(x, CAKE_Y - 21, 14, 44, COLORS.peach);
-      const clickArea = this.add.zone(x, CAKE_Y - 21, 36, 74)
+    for (const spec of CANDLES) {
+      const x = spec.x * ART_SCALE;
+      const top = spec.top * ART_SCALE;
+      const flameY = top - 14;
+      const clickArea = this.add.zone(x, top + 46, 46, 110)
         .setInteractive({ useHandCursor: false });
       const flame = this.add.ellipse(x, flameY, 15, 22, 0xffc45e).setVisible(false);
       const glow = this.add.image(x, flameY, "warm-candle-glow")
@@ -87,12 +104,11 @@ export class BirthdayScene extends Phaser.Scene {
         .setAlpha(0)
         .setVisible(false);
 
-      this.addIntroObject(candleBody, 20);
       this.addIntroObject(clickArea, 20);
       this.addIntroObject(flame, 61);
       this.addIntroObject(glow, 60);
 
-      const candle = { body: candleBody, clickArea, flame, glow, lit: false };
+      const candle = { clickArea, flame, glow, lit: false };
       this.cursorManager.bind(clickArea, "match", () => this.lightCandle(candle));
       this.candles.push(candle);
     }
@@ -106,14 +122,14 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createInstructions() {
-    this.statusText = this.add.text(CX, 62, "ろうそくに火を付けよう", {
+    this.statusText = this.add.text(CX, 62, t("ろうそくに火を付けよう", "Light the candles"), {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "34px",
       stroke: CSS_COLORS.brownDark,
       strokeThickness: 5,
     }).setOrigin(0.5).setDepth(80);
-    this.hintText = this.add.text(CX, 108, "(クリック/タップ)", {
+    this.hintText = this.add.text(CX, 108, t("(クリック/タップ)", "(Click / Tap)"), {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.ui,
       fontSize: "22px",
@@ -137,9 +153,10 @@ export class BirthdayScene extends Phaser.Scene {
     }
 
     candle.lit = true;
+    // 点いたろうそくは押せなくする（マッチのカーソルも出さない）
+    candle.clickArea.disableInteractive();
     this.cursorManager.set("default");
     this.litCandleCount += 1;
-    candle.body.setFillStyle(0xffe6b8);
     candle.flame.setVisible(true);
     candle.glow.setVisible(true);
 
@@ -166,11 +183,12 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   showBlowButton() {
-    this.blowButton = createButton(this, CX, GAME_HEIGHT - 46, 300, 60, "火を吹き消す", 26)
+    this.blowButton = createButton(this, CX, GAME_HEIGHT - 46, 300, 60, t("火を吹き消す", "Blow out the candles"), 26)
       .setDepth(85);
 
     this.addIntroObject(this.blowButton, 85);
     this.counterText.setVisible(false);
+    this.mouth.setVisible(true);
     this.cursorManager.bind(this.blowButton, "button", () => {
       if (this.sceneState === "breathing") {
         this.playBlowOut();
@@ -183,7 +201,22 @@ export class BirthdayScene extends Phaser.Scene {
     this.blowButton.disableInteractive();
     this.blowButton.setVisible(false);
     this.cursorManager.reset();
-    this.time.delayedCall(500, () => this.extinguishCandles());
+
+    // 開いた口から、小さくしながら閉じた口に変えていく（ふわふわさせない）。小さくなりきったら火を消す
+    let switched = false;
+    this.tweens.add({
+      targets: this.mouth,
+      scale: ART_SCALE * MOUTH_END_SCALE,
+      duration: MOUTH_BLOW_MS,
+      ease: "Sine.easeIn",
+      onUpdate: (tween) => {
+        if (!switched && tween.progress > 0.4) {
+          switched = true;
+          this.mouth.setTexture("mouth_closed");
+        }
+      },
+      onComplete: () => this.extinguishCandles(),
+    });
   }
 
   extinguishCandles() {
@@ -226,26 +259,31 @@ export class BirthdayScene extends Phaser.Scene {
   }
 
   createCelebrationCard() {
+    // ライブラリのシークレット「HAPPY BIRTHDAY！の一枚絵」を解放
+    save.unlockSecret("happy_picture");
     // 一枚絵（仮）。画像が決まったら this.add.image に差し替える
+    // 見出しは上、一枚絵はその下に小さめ（全画面ではない）に置く
     this.add.rectangle(CX, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.panel).setDepth(30);
-    this.add.text(CX, GAME_HEIGHT / 2, "お祝いのイラストをここに入れる", {
-      color: CSS_COLORS.peach,
-      fontFamily: FONTS.ui,
-      fontSize: "26px",
-    }).setOrigin(0.5).setDepth(31);
-
-    this.add.text(CX, 62, "HAPPY BIRTHDAY！", {
+    this.add.text(CX, 50, t("HAPPY BIRTHDAY！", "HAPPY BIRTHDAY!"), {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.title,
-      fontSize: "64px",
+      fontSize: "60px",
       stroke: CSS_COLORS.indigo,
       strokeThickness: 10,
     }).setOrigin(0.5).setDepth(40);
+    const pictureWidth = 1280 * PICTURE_SCALE;
+    const pictureHeight = 720 * PICTURE_SCALE;
+    const pictureY = 276;
+    this.add.rectangle(CX, pictureY, pictureWidth + 8, pictureHeight + 8, COLORS.orangeLight)
+      .setDepth(30.5);
+    this.add.image(CX, pictureY, "birthday_picture").setScale(PICTURE_SCALE).setDepth(31);
 
-    this.pressText = this.add.text(CX, GAME_HEIGHT - 50, "Press any button / Tap the screen", {
+    // 絵の上でも読めるように、うしろに暗い帯を敷く
+    this.pressBg = this.add.rectangle(CX, GAME_HEIGHT - 26, 420, 34, COLORS.bgDark, 0.6).setDepth(40);
+    this.pressText = this.add.text(CX, GAME_HEIGHT - 26, "Press any button / Tap the screen", {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
-      fontSize: "24px",
+      fontSize: "20px",
       stroke: CSS_COLORS.brownDark,
       strokeThickness: 4,
     }).setOrigin(0.5).setDepth(41);
@@ -273,8 +311,9 @@ export class BirthdayScene extends Phaser.Scene {
     this.input.keyboard.removeAllListeners("keydown");
     this.tweens.killTweensOf(this.pressText);
     this.pressText.setVisible(false);
+    this.pressBg.setVisible(false);
 
-    this.venueButton = createButton(this, CX, GAME_HEIGHT - 62, 380, 68, "誕生日会場に行く", 28)
+    this.venueButton = createButton(this, CX, GAME_HEIGHT - 40, 380, 64, t("誕生日会場に行く", "Go to the party"), 28)
       .setDepth(41)
       .disableInteractive();
 
@@ -296,18 +335,20 @@ export class BirthdayScene extends Phaser.Scene {
       graphics.destroy();
     }
 
+    // ぱらぱらと降り続ける紙吹雪（カラフル）
     this.confetti = this.add.particles(0, -20, "confetti-piece", {
       x: { min: 0, max: GAME_WIDTH },
-      y: -20,
+      y: { min: -30, max: -10 },
       lifespan: 6500,
-      frequency: 75,
-      quantity: 2,
-      speedX: { min: -28, max: 28 },
-      speedY: { min: 100, max: 230 },
-      gravityY: 65,
+      frequency: 55,
+      quantity: 3,
+      speedX: { min: -45, max: 45 },
+      speedY: { min: 90, max: 240 },
+      gravityY: 60,
       rotate: { min: 0, max: 360 },
-      tint: [COLORS.orange, COLORS.orangeLight, COLORS.peach, COLORS.indigo],
-      scale: { start: 1, end: 0.35 },
+      angle: { min: 0, max: 360 },
+      tint: [0xff6b6b, 0xffd93d, 0x6bcb77, 0x4d96ff, 0xf49ac1, 0xb388eb, COLORS.orangeLight],
+      scale: { start: 1.1, end: 0.4 },
     }).setDepth(60);
   }
 }

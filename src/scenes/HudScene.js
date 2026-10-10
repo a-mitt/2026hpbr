@@ -1,10 +1,17 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { CREDIT_LINES, REPORT_FORM_URL, TERMS_ITEMS } from "../data/notices.js";
-import { TASKS } from "../data/tasks.js";
+import { getTasks } from "../data/tasks.js";
+import { dialogues, ekuboGiftLines } from "../data/dialogues.js";
+import { npcs } from "../data/npcs.js";
+import { OBJECTS } from "../data/objects.js";
 import { CursorManager } from "../systems/CursorManager.js";
 import { createButton } from "../systems/Button.js";
+import { HeartView } from "../systems/HeartView.js";
+import { LibraryView } from "../systems/LibraryView.js";
+import { save } from "../systems/save.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
+import { t } from "../systems/i18n.js";
 
 const MARGIN = 16;
 const BUTTON_SIZE = 52;
@@ -12,7 +19,6 @@ const BUTTON_GAP = 10;
 const PANEL_WIDTH = GAME_WIDTH / 2;
 const PANEL_X = GAME_WIDTH - PANEL_WIDTH;
 const TEXT_RESOLUTION = 2;
-const LIBRARY_TABS = ["プレゼント", "セリフ", "オブジェクト", "コレクション", "シークレット"];
 
 // マップ画面に重ねる画面部品。左上＝タスク、右上＝ライブラリと設定のボタン。
 // 設定（右半分）かライブラリ（全画面）を開いている間は、マップ側の動きを止める。
@@ -30,18 +36,76 @@ export class HudScene extends Phaser.Scene {
     this.createButtons();
     this.createSettingsPanel();
     this.createLibraryPanel();
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cursorManager.reset());
+    this.heart = new HeartView(this, this.cursorManager);
+    const offSave = save.onChange(() => {
+      this.renderTasks();
+      this.updateBadge();
+    });
+    const onTasksChanged = () => this.renderTasks();
+    this.game.events.on("tasks-changed", onTasksChanged);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      offSave();
+      this.game.events.off("tasks-changed", onTasksChanged);
+      this.cursorManager.reset();
+    });
 
     // 開発中だけ：?panel=settings / library / terms / credits で最初から開く
-    const devPanel = import.meta.env.DEV ? new URLSearchParams(location.search).get("panel") : null;
-    if (devPanel === "settings" || devPanel === "library") {
+    const devQuery = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+    const devPanel = devQuery?.get("panel");
+    // 開発中だけ：?unlock=1 で全部解放、?tab=0〜4 でライブラリのタブを指定
+    // ?koya=1 でこやの解放後、?count=99 で4つのお祝いを99回にしておく
+    if (devQuery?.get("koya")) {
+      save.unlockSecret("koya");
+    }
+    // ?heart=reia0|reia25|reia50|reia75|left|takashi|bath でハート画面をその段階にする
+    this.applyHeartPresetForDev(devQuery?.get("heart"));
+    for (let i = 0; i < Number(devQuery?.get("count") ?? 0); i += 1) {
+      ["clap", "cracker", "say", "balloon"].forEach((id) => save.count(id) < 1000 && save.addCount(id));
+    }
+    if (devQuery?.get("unlock")) {
+      this.unlockEverythingForDev();
+    }
+    if (devPanel === "settings" || devPanel === "library" || devPanel === "heart") {
       this.setPanel(devPanel);
+      if (devQuery.get("tab")) {
+        this.library.selectTab(Number(devQuery.get("tab")));
+      }
     } else if (devPanel === "terms") {
       this.setPanel("settings");
-      this.showDetail("利用規約", TERMS_ITEMS);
+      this.showDetail(t("利用規約", "Terms of Use"), TERMS_ITEMS);
     } else if (devPanel === "credits") {
       this.setPanel("settings");
-      this.showDetail("クレジット", CREDIT_LINES);
+      this.showDetail(t("クレジット", "Credits"), CREDIT_LINES);
+    }
+  }
+
+  applyHeartPresetForDev(preset) {
+    const presets = {
+      reia0: [0, 0, 0, 0],
+      reia25: [7, 6, 6, 6],
+      reia50: [13, 13, 12, 12],
+      reia75: [19, 19, 19, 18],
+      left: [100, 100, 100, 100],
+      takashi: [1000, 1000, 1000, 1000],
+      bath: [4000, 4000, 4000, 4000],
+    };
+    if (!presets[preset]) {
+      return;
+    }
+    ["clap", "cracker", "say", "balloon"].forEach((id, index) => save.setCount(id, presets[preset][index]));
+    for (const [flag, on] of [["secret_koya", ["left", "takashi", "bath"]], ["secret_takashi", ["takashi", "bath"]], ["secret_takashi_bath", ["bath"]]]) {
+      save.setFlag(flag, on.includes(preset));
+    }
+  }
+
+  unlockEverythingForDev() {
+    for (const npc of npcs) {
+      save.giveGift(npc.id);
+      save.markSeen(npc.id, dialogues[npc.id].length);
+    }
+    save.markSeen("ekubo2", ekuboGiftLines.length);
+    for (const object of OBJECTS) {
+      save.foundObject(object.id);
     }
   }
 
@@ -62,16 +126,19 @@ export class HudScene extends Phaser.Scene {
 
   // ---- 左上のタスク ----
   createTaskBox() {
-    const title = this.addText(MARGIN + 14, MARGIN + 10, "やること", 16, { color: CSS_COLORS.orangeLight });
-    const tasks = this.addText(MARGIN + 14, MARGIN + 34, TASKS.map((task) => `・${task}`).join("\n"), 20, {
-      lineSpacing: 4,
-    });
-    const width = Math.max(tasks.width, title.width) + 28;
-    const height = tasks.height + 50;
-    this.add.graphics()
+    this.taskBackground = this.add.graphics().setDepth(-1);
+    this.taskTitle = this.addText(MARGIN + 14, MARGIN + 10, t("やること", "To Do"), 16, { color: CSS_COLORS.orangeLight });
+    this.taskText = this.addText(MARGIN + 14, MARGIN + 34, "", 20, { lineSpacing: 4 });
+    this.renderTasks();
+  }
+
+  renderTasks() {
+    this.taskText.setText(getTasks().map((task) => `${task.done() ? "✓" : "・"}${task.label}`).join("\n"));
+    const width = Math.max(this.taskText.width, this.taskTitle.width) + 28;
+    const height = this.taskText.height + 50;
+    this.taskBackground.clear()
       .fillStyle(COLORS.bgDark, 0.6)
-      .fillRoundedRect(MARGIN, MARGIN, width, height, 8)
-      .setDepth(-1);
+      .fillRoundedRect(MARGIN, MARGIN, width, height, 8);
   }
 
   // ---- 右上のボタン ----
@@ -82,14 +149,26 @@ export class HudScene extends Phaser.Scene {
 
     this.settingsButton = this.createIconButton(settingsX, y, (icon) => this.drawGear(icon));
     this.libraryButton = this.createIconButton(libraryX, y, (icon) => this.drawBook(icon));
+    const heartX = libraryX - BUTTON_SIZE - BUTTON_GAP;
+    this.heartButton = this.createIconButton(heartX, y, (icon) => this.drawHeart(icon));
+    this.heartButton.setDepth(10);
     this.settingsButton.setDepth(10);
     this.libraryButton.setDepth(10);
+    // 新着があるときの赤丸（ライブラリのアイコンの右上）
+    this.badge = this.add.circle(libraryX + BUTTON_SIZE / 2 - 4, y - BUTTON_SIZE / 2 + 4, 9, 0xe23b3b)
+      .setStrokeStyle(2, COLORS.cream).setDepth(11);
+    this.updateBadge();
 
     this.bindButton(this.settingsButton, () => this.togglePanel("settings"));
     this.bindButton(this.libraryButton, () => this.togglePanel("library"));
-    for (const button of [this.settingsButton, this.libraryButton]) {
+    this.bindButton(this.heartButton, () => this.togglePanel("heart"));
+    for (const button of [this.settingsButton, this.libraryButton, this.heartButton]) {
       this.uiRects.push(this.rectOf(button.x - BUTTON_SIZE / 2, button.y - BUTTON_SIZE / 2, BUTTON_SIZE, BUTTON_SIZE));
     }
+  }
+
+  updateBadge() {
+    this.badge.setVisible(save.hasNew());
   }
 
   // アイコン絵を描く関数を受け取り、閉じた状態の絵とバツの絵を重ねて持つボタン
@@ -141,6 +220,15 @@ export class HudScene extends Phaser.Scene {
     icon.add(this.add.rectangle(8, 3, 9, 2, COLORS.orange));
   }
 
+  drawHeart(icon) {
+    icon.add(this.add.text(0, 1, "♥", {
+      color: "#f49ac1",
+      fontFamily: FONTS.ui,
+      fontSize: "34px",
+      resolution: TEXT_RESOLUTION,
+    }).setOrigin(0.5));
+  }
+
   drawCross(icon) {
     const cream = Phaser.Display.Color.HexStringToColor(CSS_COLORS.cream).color;
     icon.add(this.add.rectangle(0, 0, 6, 28, cream).setAngle(45));
@@ -172,14 +260,14 @@ export class HudScene extends Phaser.Scene {
     const left = PANEL_X + 30;
     const buttonWidth = PANEL_WIDTH - 60;
     let top = 24;
-    this.settingsMenu.add(this.addText(left, top, "設定", 28));
+    this.settingsMenu.add(this.addText(left, top, t("設定", "Settings"), 28));
     top += 54;
 
     if (this.sys.game.device.input.touch) {
       const notice = this.addText(
         left,
         top,
-        "スマホで遊ぶ場合は、画面ロック（向きの固定）を\nオフにして、横画面にしてください。",
+        t("スマホで遊ぶ場合は、画面ロック（向きの固定）を\nオフにして、横画面にしてください。", "If you play on a phone, turn off the screen\nrotation lock and use landscape orientation."),
         15,
         { color: CSS_COLORS.peach, lineSpacing: 4 },
       );
@@ -188,8 +276,8 @@ export class HudScene extends Phaser.Scene {
     }
 
     const entries = [
-      { label: "利用規約", onClick: () => this.showDetail("利用規約", TERMS_ITEMS) },
-      { label: "クレジット", onClick: () => this.showDetail("クレジット", CREDIT_LINES) },
+      { label: t("利用規約", "Terms of Use"), onClick: () => this.showDetail(t("利用規約", "Terms of Use"), TERMS_ITEMS) },
+      { label: t("クレジット", "Credits"), onClick: () => this.showDetail(t("クレジット", "Credits"), CREDIT_LINES) },
     ];
     for (const entry of entries) {
       const button = createButton(this, left + buttonWidth / 2, top + 28, buttonWidth, 56, entry.label, 24);
@@ -205,7 +293,7 @@ export class HudScene extends Phaser.Scene {
       top + 28,
       buttonWidth,
       56,
-      formReady ? "バグ報告フォーム" : "バグ報告フォーム（準備中）",
+      formReady ? t("バグ報告フォーム", "Bug Report Form") : t("バグ報告フォーム（準備中）", "Bug Report Form (coming soon)"),
       24,
     );
     formButton.setAlpha(formReady ? 1 : 0.5);
@@ -218,16 +306,36 @@ export class HudScene extends Phaser.Scene {
     }
     this.settingsMenu.add(formButton);
     top += 70;
-    this.settingsMenu.add(this.addText(left, top, "※ Googleフォームに飛びます（別のタブで開きます）", 14, {
+    this.settingsMenu.add(this.addText(left, top, t("※ Googleフォームに飛びます（別のタブで開きます）", "* Opens a Google Form (in a new tab)"), 14, {
       color: CSS_COLORS.peach,
     }));
+    top += 40;
+
+    // 進み具合を消して最初からやり直す（押し間違い防止に、2回押したときだけ実行）
+    const resetButton = createButton(this, left + buttonWidth / 2, top + 24, buttonWidth, 48, t("進み具合をリセット", "Reset progress"), 20);
+    const resetLabel = resetButton.list[resetButton.list.length - 1];
+    let armed = false;
+    this.cursorManager.bind(resetButton, "button", () => {
+      if (!armed) {
+        armed = true;
+        resetLabel.setText(t("もう一度押すと、最初からになります", "Press again to start over"));
+        this.time.delayedCall(4000, () => {
+          armed = false;
+          resetLabel.setText(t("進み具合をリセット", "Reset progress"));
+        });
+        return;
+      }
+      save.reset();
+      window.location.reload();
+    });
+    this.settingsMenu.add(resetButton);
 
     this.detailTitle = this.addText(left, 24, "", 28);
     this.detailBody = this.addText(left, 76, "", 15, {
       lineSpacing: 6,
       wordWrap: { width: buttonWidth, useAdvancedWrap: true },
     });
-    const back = createButton(this, left + 70, GAME_HEIGHT - 44, 140, 48, "戻る", 22);
+    const back = createButton(this, left + 70, GAME_HEIGHT - 44, 140, 48, t("戻る", "Back"), 22);
     this.cursorManager.bind(back, "button", () => this.showMenu());
     this.settingsDetail.add([this.detailTitle, this.detailBody, back]);
 
@@ -250,38 +358,7 @@ export class HudScene extends Phaser.Scene {
 
   // ---- ライブラリ（全画面） ----
   createLibraryPanel() {
-    const children = [];
-    children.push(
-      this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.bg, 0.98).setOrigin(0).setInteractive(),
-    );
-    children.push(this.addText(MARGIN + 14, MARGIN + 6, "ライブラリ", 30));
-
-    // タブ（中身ができるまでは並べるだけ）。ボタンのぶん右を空ける
-    const tabWidth = 124;
-    LIBRARY_TABS.forEach((label, index) => {
-      const x = MARGIN + 14 + index * (tabWidth + 8);
-      children.push(
-        this.add.rectangle(x, 78, tabWidth, 34, COLORS.bgDark, 0.7).setOrigin(0)
-          .setStrokeStyle(1, COLORS.peach, 0.5),
-        this.addText(x + tabWidth / 2, 95, label, 16, { color: CSS_COLORS.peach }).setOrigin(0.5),
-      );
-    });
-
-    children.push(
-      this.addText(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10, "まだ何もありません。\n話しかけたり、見つけたりすると、ここに集まります。", 20, {
-        align: "center",
-        lineSpacing: 8,
-      }).setOrigin(0.5),
-      this.addText(
-        GAME_WIDTH / 2,
-        GAME_HEIGHT - 52,
-        "記録は、お使いのブラウザの中だけに保存されます（Cookieは使いません）。別の端末・別のブラウザには引き継がれません。\nシークレットモードや、サイトデータを消したときは、消えることがあります。",
-        13,
-        { color: CSS_COLORS.peach, align: "center", lineSpacing: 4, wordWrap: { width: GAME_WIDTH - 80, useAdvancedWrap: true } },
-      ).setOrigin(0.5),
-    );
-
-    this.libraryPanel = this.add.container(0, 0, children).setDepth(5).setVisible(false);
+    this.library = new LibraryView(this, this.cursorManager);
   }
 
   // ---- 開け閉め ----
@@ -295,7 +372,8 @@ export class HudScene extends Phaser.Scene {
     this.cursorManager.reset();
 
     this.settingsPanel.setVisible(name === "settings");
-    this.libraryPanel.setVisible(name === "library");
+    this.library.setVisible(name === "library");
+    this.heart.setVisible(name === "heart");
     if (name === "settings") {
       this.showMenu();
     }
@@ -303,6 +381,8 @@ export class HudScene extends Phaser.Scene {
     this.settingsButton.iconOpen.setVisible(name === "settings");
     this.libraryButton.iconClosed.setVisible(name !== "library");
     this.libraryButton.iconOpen.setVisible(name === "library");
+    this.heartButton.iconClosed.setVisible(name !== "heart");
+    this.heartButton.iconOpen.setVisible(name === "heart");
 
     // パネルを開いている間は、マップ側（歩く・会話）を止める
     if (name !== null && !wasOpen) {

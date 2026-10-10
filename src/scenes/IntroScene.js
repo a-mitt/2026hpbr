@@ -5,6 +5,8 @@ import { createButton } from "../systems/Button.js";
 import { addMixedText } from "../systems/mixedText.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 import { NOTICE_LINES } from "../data/notices.js";
+import { save } from "../systems/save.js";
+import { isEnglish, switchLanguage, t } from "../systems/i18n.js";
 
 // レイアウト：左揃えの1カラム。大事な警告は札、規約は小さく読ませる
 const MARGIN = 56;
@@ -22,9 +24,9 @@ export class IntroScene extends Phaser.Scene {
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.bg);
 
     addMixedText(this, MARGIN, 34, [
-      { text: "2026" },
-      { text: "霊幻新隆", fontFamily: FONTS.name, fontSize: "37px" },
-      { text: "おたおめ同人Webゲーム" },
+      { text: t("2026", "2026 ") },
+      { text: t("霊幻新隆", "Reigen Arataka"), fontFamily: FONTS.name, fontSize: "37px" },
+      { text: t("おたおめ同人Webゲーム", " Birthday Fan Game") },
     ], {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.ui,
@@ -32,47 +34,88 @@ export class IntroScene extends Phaser.Scene {
     });
 
     const cardWidth = (CONTENT_WIDTH - 24) / 2;
-    this.createWarningCard(MARGIN, 88, cardWidth, "非公式の二次創作ゲームです", "公式様とは一切関係ありません。");
-    this.createWarningCard(MARGIN + cardWidth + 24, 88, cardWidth, "光の明滅表現があります", "光に敏感な方はご注意ください。");
+    this.createWarningCard(MARGIN, 88, cardWidth, t("非公式の二次創作ゲームです", "Unofficial fan game"), t("公式様とは一切関係ありません。", "Not affiliated with the official creators."));
+    this.createWarningCard(MARGIN + cardWidth + 24, 88, cardWidth, t("光の明滅表現があります", "Flashing lights"), t("光に敏感な方はご注意ください。", "Please take care if you are light-sensitive."));
 
-    this.createPill(MARGIN, 184, "スマホで遊ぶ場合は【横画面推奨】です");
+    this.createPill(MARGIN, 184, t("スマホで遊ぶ場合は【横画面推奨】です", "On mobile, landscape orientation is recommended"));
 
-    this.add.text(MARGIN, 238, NOTICE_LINES.join("\n"), {
+    this.add.text(MARGIN, 230, NOTICE_LINES.join("\n"), {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.intro,
       fontSize: "13px",
       lineSpacing: 5,
     }).setAlpha(0.9);
 
-    this.add.text(MARGIN, 400, "最後に...", {
+    this.add.text(MARGIN, 400, t("最後に...", "Finally..."), {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.intro,
       fontSize: "14px",
     });
     addMixedText(this, MARGIN, 420, [
-      { text: "霊幻新隆", fontFamily: FONTS.name, fontSize: "31px" },
-      { text: "、お誕生日おめでとう！🎉" },
+      { text: t("", "Happy birthday, ") },
+      { text: t("霊幻新隆", "Reigen Arataka"), fontFamily: FONTS.name, fontSize: "31px" },
+      { text: t("、お誕生日おめでとう！🎉", "! 🎉") },
     ], {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "27px",
     });
 
-    const startButton = createButton(this, GAME_WIDTH - MARGIN - 175, 432, 350, 72, "同意して始める", 30);
+    // 英語はラベルが長いので、チェックを少し左に置く
+    this.createOptIn(GAME_WIDTH - MARGIN - (isEnglish ? 480 : 350), 386);
+    this.createLanguageButton();
+
+    const startButton = createButton(this, GAME_WIDTH - MARGIN - 175, 450, 350, 70, t("同意して始める", "I Agree & Start"), 30);
 
     const creditStyle = {
       color: CSS_COLORS.peach,
       fontFamily: FONTS.intro,
       fontSize: "12px",
     };
-    this.add.text(GAME_WIDTH - MARGIN, 488, "by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", creditStyle)
+    this.add.text(GAME_WIDTH - MARGIN, 500, t("by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", "by Urasekai (formerly Kotowari no Me)  X:@NLisei_kotowari"), creditStyle)
       .setOrigin(1, 1).setAlpha(0.85);
-    this.add.text(GAME_WIDTH - MARGIN, 506, "ゲームコード:AI使用、絵:裏世界、Ver1.0-2026.10.10", creditStyle)
+    this.add.text(GAME_WIDTH - MARGIN, 518, t("ゲームコード:AI使用、絵:裏世界、Ver1.0-2026.10.10", "Game code: AI-assisted, Art: Urasekai, Ver1.0-2026.10.10"), creditStyle)
       .setOrigin(1, 1).setAlpha(0.85);
 
     this.cursorManager.bind(startButton, "button", () => {
       this.scene.start("BirthdayScene");
     });
+  }
+
+  // 右上の言語切り替え（押すとページを読み込み直して、もう一方の言語で始まる）
+  createLanguageButton() {
+    const button = createButton(this, GAME_WIDTH - MARGIN - 48, 44, 96, 36, isEnglish ? "日本語" : "English", 18);
+    this.cursorManager.bind(button, "button", () => switchLanguage());
+  }
+
+  // 任意のチェック：入れると、ライブラリのプレゼントの「意味」が見られる（保存される）
+  createOptIn(x, y) {
+    const box = this.add.rectangle(x + 11, y, 22, 22, COLORS.bgDark, 0.7)
+      .setStrokeStyle(2, COLORS.orangeLight, 1);
+    const mark = this.add.text(x + 11, y - 1, "✓", {
+      color: CSS_COLORS.cream,
+      fontFamily: FONTS.ui,
+      fontSize: "20px",
+    }).setOrigin(0.5);
+    const label = this.add.text(x + 32, y - 11, t("非公式の恋愛的表現に抵抗が無い", "I am okay with unofficial romantic expressions"), {
+      color: CSS_COLORS.cream,
+      fontFamily: FONTS.ui,
+      fontSize: "19px",
+    });
+    this.add.text(x + 32, y + 12, t("（チェックすると、プレゼントの「意味」が見られます）", "(Tick this to see the \"meaning\" of each present)"), {
+      color: CSS_COLORS.peach,
+      fontFamily: FONTS.intro,
+      fontSize: "11px",
+    }).setAlpha(0.85);
+
+    const refresh = () => mark.setVisible(Boolean(save.flag("romanceOk")));
+    refresh();
+    const zone = this.add.zone(x - 4, y - 14, 340, 40).setOrigin(0).setInteractive();
+    this.cursorManager.bind(zone, "button", () => {
+      save.setFlag("romanceOk", !save.flag("romanceOk"));
+      refresh();
+    });
+    return [box, mark, label];
   }
 
   // 警告札：丸バッジ＋見出し＋一言

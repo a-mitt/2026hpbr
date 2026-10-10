@@ -1,7 +1,10 @@
 import { TYPING_INTERVAL_MS } from "../constants.js";
+import { displayName } from "./i18n.js";
 
 export class DialogManager {
-  constructor(scene, nameText, bodyText, advanceHint, onEnd) {
+  constructor(scene, nameText, bodyText, advanceHint, onEnd, { nameBox = null, onLine = null } = {}) {
+    this.nameBox = nameBox;
+    this.onLine = onLine;
     this.scene = scene;
     this.nameText = nameText;
     this.bodyText = bodyText;
@@ -21,7 +24,10 @@ export class DialogManager {
 
   showCurrentLine() {
     const line = this.lines[this.lineIndex];
-    this.nameText.setText(line.speaker);
+    this.nameText.setText(displayName(line.speaker));
+    // 地の文（話者なし）のときは名前の札を出さない
+    this.nameBox?.setVisible(line.speaker !== "");
+    this.onLine?.(this.lineIndex);
     this.bodyText.setText("");
     this.advanceHint.setVisible(false);
     this.state = "TYPING";

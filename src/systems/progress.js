@@ -1,5 +1,19 @@
-// 集めた記録の進み具合。保存・集計の仕組みができるまでは、全部は集まっていない扱い。
-// ライブラリ（プレゼント・セリフ・オブジェクト・コレクション）の保存を作るときに、ここを本物にする
+import { npcs } from "../data/npcs.js";
+import { save } from "./save.js";
+
+// プレゼントをもらった人数（「帰る」のエンディングの分かれ目）
+export function giftCount() {
+  return npcs.filter((npc) => save.hasGift(npc.id)).length;
+}
+
+// 全員からプレゼントをもらったか（「1人で残る」を選べる条件）
 export function hasAllCollections() {
-  return false;
+  return npcs.every((npc) => save.hasGift(npc.id));
+}
+
+// 夜のシーン（1人で残る）の途中経過。保存しない（リロードすると昼に戻る）
+export const session = { night: false, photo: false, safeDone: false };
+
+export function resetSession() {
+  Object.assign(session, { night: false, photo: false, safeDone: false });
 }

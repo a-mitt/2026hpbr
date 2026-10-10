@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
-import { hasAllCollections } from "../systems/progress.js";
+import { giftCount, hasAllCollections } from "../systems/progress.js";
 import { CursorManager } from "../systems/CursorManager.js";
 import { createButton } from "../systems/Button.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
+import { t } from "../systems/i18n.js";
 
 const CX = GAME_WIDTH / 2;
 const TEXT_RESOLUTION = 2;
@@ -39,18 +40,18 @@ export class ExitPromptScene extends Phaser.Scene {
 
   buildChoices() {
     const canStay = hasAllCollections();
-    this.choiceView.add(this.addText(CX, 150, "終わりにして帰る？", 38).setOrigin(0.5));
+    this.choiceView.add(this.addText(CX, 150, t("終わりにして帰る？", "Call it a day?"), 38).setOrigin(0.5));
 
     const choices = [
-      { label: "もう少し", x: CX - 200, onClick: () => this.close() },
-      { label: "帰る", x: CX, onClick: () => this.showNotice("エンディングは準備中です。") },
+      { label: t("もう少し", "Stay a bit"), x: CX - 200, onClick: () => this.close() },
+      { label: t("帰る", "Go home"), x: CX, onClick: () => this.goHome() },
       {
-        label: "1人で残る",
+        label: t("1人で残る", "Stay alone"),
         x: CX + 200,
         locked: !canStay,
         onClick: () => (canStay
-          ? this.showNotice("エンディングは準備中です。")
-          : this.showHint("まだ全てのコレクションを達成していません。")),
+          ? this.stayAlone()
+          : this.showHint(t("まだ全てのコレクションを達成していません。", "You have not completed the whole collection yet."))),
       },
     ];
     for (const choice of choices) {
@@ -66,7 +67,7 @@ export class ExitPromptScene extends Phaser.Scene {
 
   buildNotice() {
     this.noticeText = this.addText(CX, 230, "", 30).setOrigin(0.5);
-    const back = createButton(this, CX, 320, 180, 60, "もどる", 24);
+    const back = createButton(this, CX, 320, 180, 60, t("もどる", "Back"), 24);
     this.cursorManager.bind(back, "button", () => this.showChoices());
     this.noticeView.add([this.noticeText, back]);
   }
@@ -87,6 +88,21 @@ export class ExitPromptScene extends Phaser.Scene {
     this.noticeView.setVisible(false);
     this.choiceView.setVisible(true);
     this.cursorManager.reset();
+  }
+
+  // 帰る → 誰からももらっていなければバッドエンド、誰かからもらっていればノーマルエンド
+  goHome() {
+    this.cursorManager.reset();
+    this.scene.stop("HudScene");
+    this.scene.stop("FieldScene");
+    this.scene.start("EndingScene", { kind: giftCount() === 0 ? "bad" : "normal" });
+  }
+
+  // 1人で残る → 夜のシーン
+  stayAlone() {
+    const field = this.scene.get("FieldScene");
+    this.close();
+    field.startNight();
   }
 
   close() {

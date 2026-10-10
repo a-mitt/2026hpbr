@@ -1,9 +1,9 @@
 [
-  { "id": "tome", "name": "トメ", "x": 860, "y": 659, "color": "#e67862", "lines": ["セリフ準備中"] },
-  { "id": "ritsu", "name": "律", "x": 1600, "y": 579, "color": "#75bba2", "lines": ["セリフ準備中"] },
-  { "id": "shou", "name": "ショウ", "x": 1180, "y": 579, "color": "#699ac0", "lines": ["セリフ準備中"] },
-  { "id": "mob", "name": "モブ", "x": 885, "y": 369, "color": "#e5b957", "lines": ["セリフ準備中"] },
-  { "id": "ekubo", "name": "エクボ", "x": 1306, "y": 293, "color": "#c17d99", "lines": ["セリフ準備中"] },
-  { "id": "teru", "name": "テル", "x": 540, "y": 869, "color": "#8a9d64", "lines": ["セリフ準備中"] },
-  { "id": "serizawa", "name": "芹沢", "x": 1000, "y": 919, "color": "#e18e55", "lines": ["セリフ準備中"] }
+  { "id": "tome", "name": "トメ", "x": 860, "y": 659, "color": "#e67862" },
+  { "id": "ritsu", "name": "律", "x": 1600, "y": 579, "color": "#75bba2" },
+  { "id": "shou", "name": "ショウ", "x": 1180, "y": 579, "color": "#699ac0" },
+  { "id": "mob", "name": "モブ", "x": 885, "y": 369, "color": "#e5b957" },
+  { "id": "ekubo", "name": "エクボ", "x": 1306, "y": 293, "color": "#c17d99" },
+  { "id": "teru", "name": "テル", "x": 540, "y": 869, "color": "#8a9d64" },
+  { "id": "serizawa", "name": "芹沢", "x": 1000, "y": 919, "color": "#e18e55" }
 ]
