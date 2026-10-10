@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# ネタバレを含む詳細メモ（公開リポジトリには入れない）
+docs/*.local.md

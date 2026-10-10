@@ -7,7 +7,7 @@ PC（VS Code / ターミナル）とスマホ（claude.ai/code）の両方から
 - 誕生日お祝いミニRPG（Phaser 3 + Vite、JavaScript）。
 - 流れ：`IntroScene`（説明・同意）→ `BirthdayScene`（ろうそく点火・お祝い）→ `FieldScene`（横長マップを歩きNPC 7人と会話）＋ `HudScene`（左上タスク・右上ライブラリ/設定）＋ `DialogScene`（会話表示）＋ `ExitPromptScene`（終わりの選択）。
 - 公開：`main` へのpushで GitHub Actions（`.github/workflows/deploy.yml`）が GitHub Pages にデプロイ（`vite.config.js` の `base: "/2026hpbr/"`）。
-- 現状：マップは正式画像（1920×1080）に差し替え済み。台詞・キャラ画像・一枚絵は仮。ライブラリの中身・保存、エンディングは未実装。公開予定は2026-10-10。
+- 現状：マップ・キャラ・会話・ライブラリ・ハート画面・エンディング・英語版まで実装済み（絵は順次差し替え）。公開予定は2026-10-10。
 - リポジトリは**公開**。下書きの文面やネタバレを `docs/` に置く前にユーザーへ確認する。
 
 ## 最初に読む資料
