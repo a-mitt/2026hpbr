@@ -5,7 +5,7 @@ export const NOTICE_LINES = t(
   [
     "・公式様とは一切関係ありません。ファンゲームのため、バグや不具合が残っている場合があります。",
     "　恐れ入りますが、自己責任でのプレイをお願いいたします。",
-    "・不具合を見つけた場合は、「設定」画面の【報告フォーム】から教えていただけると嬉しいです！",
+    "・不具合を見つけた場合は、「設定」画面の【バグ・感想フォーム】から教えていただけると嬉しいです！感想も大歓迎です！",
     "・スクショ・SNS投稿・配信などは全てOKです。二次創作のため、公式様や他の方のご迷惑にならないようご配慮ください。",
     "　これらによって生じた損害等について、製作者は責任を負いません。",
     "・推奨環境：最新版のChrome / Safari / Edge。個人情報は取得せず、進み具合のみブラウザ内に保存します。",
@@ -14,7 +14,7 @@ export const NOTICE_LINES = t(
   [
     "- This is unofficial and has no connection to the official creators. As a fan game, it may still contain bugs.",
     "  Please play at your own risk.",
-    "- If you find a bug, please let us know via [Report Form] in the Settings screen!",
+    "- If you find a bug, please let us know via [Bug & Feedback Form] in the Settings screen! Feedback is very welcome, too!",
     "- Screenshots, social media posts and streaming are all OK. As a fan work, please be considerate of the official creators and others.",
     "  The creator is not responsible for any damage resulting from these.",
     "- Recommended: latest Chrome / Safari / Edge. No personal information is collected; only your progress is saved in your browser.",
@@ -60,5 +60,5 @@ export const CREDIT_LINES = t(
   ],
 );
 
-// バグ報告フォーム（Googleフォーム）のURL。フォームを作ったらここに入れる
+// バグ・感想フォーム（Googleフォーム）のURL
 export const REPORT_FORM_URL = "https://forms.gle/RL7cyUeD4p7vVHjD8";
