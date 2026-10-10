@@ -24,6 +24,10 @@ const STAND_RIGHT_X = 700;
 // 立ち絵は会話枠のうしろまで伸ばして、大きく見せる（枠は半透明）
 const STAND_BOTTOM_Y = GAME_HEIGHT + 24;
 const DIM_TINT = 0x3f3f4d;
+// 重なり順：暗くする幕 ＜ 立ち絵 ＜ 会話枠（半透明）。立ち絵は、しゃべっている方も枠の後ろ
+const DEPTH_DIM = -3;
+const DEPTH_STAND = -2;
+const DEPTH_STAND_SPEAKING = -1;
 const PLAYER_NAME = "霊幻";
 
 // 禁則処理：行の先頭に来てはいけない文字は前の行の終わりにぶら下げ、行末に来てはいけない文字は次の行へ送る
@@ -73,7 +77,7 @@ export class DialogScene extends Phaser.Scene {
     this.portraitOverrides = portraits;
 
     // 立ち絵が見やすいよう、マップ全体を少し暗くする
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0);
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM);
     this.createStands(npc);
 
     this.add.rectangle(GAME_WIDTH / 2, BOX_TOP + BOX_HEIGHT / 2, GAME_WIDTH, BOX_HEIGHT, COLORS.bgDark, 0.74)
@@ -163,7 +167,8 @@ export class DialogScene extends Phaser.Scene {
     if (!key || !this.textures.exists(key)) {
       return;
     }
-    const image = this.add.image(x, STAND_BOTTOM_Y, key).setOrigin(isPlayer ? PLAYER_STAND_ORIGIN_X : 0.5, 1);
+    const image = this.add.image(x, STAND_BOTTOM_Y, key).setOrigin(isPlayer ? PLAYER_STAND_ORIGIN_X : 0.5, 1)
+      .setDepth(DEPTH_STAND);
     this.stands.push({ name, image, isPlayer });
     this.applyStandScale(this.stands[this.stands.length - 1], false);
   }
@@ -184,10 +189,10 @@ export class DialogScene extends Phaser.Scene {
       }
       if (speaking) {
         stand.image.clearTint();
-        stand.image.setDepth(1);
+        stand.image.setDepth(DEPTH_STAND_SPEAKING);
       } else {
         stand.image.setTint(DIM_TINT);
-        stand.image.setDepth(0);
+        stand.image.setDepth(DEPTH_STAND);
       }
       this.applyStandScale(stand, speaking);
     }
