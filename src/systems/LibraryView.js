@@ -270,7 +270,7 @@ export class LibraryView {
         title: locked ? UNKNOWN_LABEL : info.gift,
         sub: locked ? "" : t(`${npc.name}から`, `From ${displayName(npc.name)}`),
         locked,
-        icon: (x, y) => this.giftImage(npc.id, x, y + 4, 112, 76, locked),
+        icon: (x, y) => this.giftImage(npc.id, x, y + 4, 112, 76, locked, true),
         onClick: () => this.openDetail(() => {
           this.body.add([
             this.giftImage(npc.id, 730, 290, 300, 260, false),
@@ -302,8 +302,9 @@ export class LibraryView {
   }
 
   // プレゼントの絵を、maxW×maxH に収まる大きさで置く（locked ならシルエット）
-  giftImage(npcId, x, y, maxW, maxH, locked) {
-    const image = this.scene.add.image(x, y, `gift_${npcId}`);
+  // small＝カードなど小さく出すとき（縮小済みの絵を使う）
+  giftImage(npcId, x, y, maxW, maxH, locked, small = false) {
+    const image = this.scene.add.image(x, y, small ? `gift_${npcId}_s` : `gift_${npcId}`);
     image.setScale(Math.min(maxW / image.width, maxH / image.height));
     if (locked) {
       image.setTintFill(0x1b0f0a);

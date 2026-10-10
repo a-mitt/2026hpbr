@@ -293,7 +293,7 @@ export class HudScene extends Phaser.Scene {
       top + 28,
       buttonWidth,
       56,
-      formReady ? t("バグ報告フォーム", "Bug Report Form") : t("バグ報告フォーム（準備中）", "Bug Report Form (coming soon)"),
+      formReady ? t("バグ・感想フォーム", "Bug & Feedback Form") : t("バグ・感想フォーム（準備中）", "Bug & Feedback Form (coming soon)"),
       24,
     );
     formButton.setAlpha(formReady ? 1 : 0.5);

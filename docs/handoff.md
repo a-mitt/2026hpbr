@@ -51,7 +51,7 @@
 
 ## 7. マップ（今回の主な作業）
 
-素材：`public/assets/map/`（すべて 1920×1080 の透明PNG。`wallonly`＝背景、`stairs`、家具9枚、`toiletdoor`、`goal`＝完成形の見本）。元データはユーザーのPCの `OneDrive\画像\自分の絵\map_parts`。
+素材：`public/assets/map/`（すべて 1920×1080 の透明PNG。`wallonly`＝背景、`stairs`、家具9枚、`toiletdoor`、`goal`＝完成形の見本）。元データはユーザーのPC（ローカル）にある。
 
 - **カメラ**：常にキャラが画面中央（遅れなし）。マップの端では外側の黒が見える。画面は960×540のままで、マップ（1920×1080）は等倍。
 - **キャラ**：見た目を1.7倍（`CHARACTER_SCALE`）。中心から足元まで `FOOT_OFFSET`（61px）。**当たり判定・前後（depth）はすべて足元の点**で決める。NPCの `npcs.json` の `x,y` は「キャラ中心」（足元＝y+61）。
