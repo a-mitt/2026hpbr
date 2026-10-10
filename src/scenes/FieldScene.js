@@ -104,6 +104,8 @@ export class FieldScene extends Phaser.Scene {
     this.load.setPath(GIFT_ASSET_DIR);
     for (const npc of npcs) {
       this.load.image(`gift_${npc.id}`, `${npc.id}.png`);
+      // 小さく表示する用（マップ上・カードの絵）。大きい絵を小さく縮めて出すと、ギザギザになるため
+      this.load.image(`gift_${npc.id}_s`, `${npc.id}_s.png`);
     }
   }
 
@@ -763,8 +765,8 @@ export class FieldScene extends Phaser.Scene {
     }
     const hit = SPOTS.takoyaki.hit;
     // 小さなテーブルの上のたこ焼き（絵の幅を60pxに合わせる）
-    const image = this.add.image(hit.x + hit.w / 2, hit.y + hit.h / 2, "gift_ekubo").setDepth(1005);
-    image.setScale(60 / image.width);
+    const image = this.add.image(hit.x + hit.w / 2, hit.y + hit.h / 2, "gift_ekubo_s").setDepth(1005);
+    image.setScale(64 / image.width);
     this.takoyakiSprite = image;
   }
 
