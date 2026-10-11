@@ -281,12 +281,6 @@ export class HudScene extends Phaser.Scene {
     const buttonWidth = PANEL_WIDTH - 60;
     let top = 24;
     this.settingsMenu.add(this.addText(left, top, t("設定", "Settings"), 28));
-    // 全画面（iPhoneのSafariは非対応なので出さない）
-    if (this.scale.fullscreen.available) {
-      const fullscreenButton = createButton(this, left + buttonWidth - 75, top + 18, 150, 36, t("全画面", "Fullscreen"), 18);
-      this.cursorManager.bind(fullscreenButton, "button", () => this.scale.toggleFullscreen());
-      this.settingsMenu.add(fullscreenButton);
-    }
     top += 54;
 
     if (this.sys.game.device.input.touch) {
@@ -360,7 +354,7 @@ export class HudScene extends Phaser.Scene {
       top += 54;
     };
     addResetButton(
-      t("セリフ・エンディングをリセット", "Reset dialogue & endings"),
+      t("セリフ・エンディングのみをリセット", "Reset dialogue & endings"),
       t("もう一度押すと実行（お祝いした記録は残る）", "Press again (celebration records kept)"),
       () => save.resetRun(),
     );
@@ -370,12 +364,20 @@ export class HudScene extends Phaser.Scene {
       () => save.reset(),
     );
 
+    // 全画面（iPhoneのSafariは非対応なので、ボタンは出さず説明だけ）
+    if (this.scale.fullscreen.available) {
+      const fullscreenButton = createButton(this, left + buttonWidth / 2, top + 22, buttonWidth, 44, t("全画面にする", "Fullscreen"), 18);
+      this.cursorManager.bind(fullscreenButton, "button", () => this.scale.toggleFullscreen());
+      this.settingsMenu.add(fullscreenButton);
+      top += 54;
+    }
+
     const fullscreenNote = this.addText(
       left,
       top + 6,
       t(
-        "【全画面について】\nAndroidなどは、右上の「全画面」ボタンで全画面にできます。\niPhoneは全画面ボタンが使えないので、Safariで開いて、下の共有ボタン →「ホーム画面に追加」を押し、追加されたアイコンから開くと、アプリのように全画面で遊べます。",
-        "[About fullscreen]\nOn Android and similar, use the Fullscreen button at the top right.\nOn iPhone, open this page in Safari, tap the Share button, choose \"Add to Home Screen\", then open the new icon to play fullscreen like an app.",
+        "【全画面について】\nAndroidなどは、上の「全画面にする」ボタンで全画面にできます。\niPhoneは全画面ボタンが使えないので、Safariで開いて、下の共有ボタン →「ホーム画面に追加」を押し、追加されたアイコンから開くと、アプリのように全画面で遊べます。",
+        "[About fullscreen]\nOn Android and similar, use the Fullscreen button above.\nOn iPhone, open this page in Safari, tap the Share button, choose \"Add to Home Screen\", then open the new icon to play fullscreen like an app.",
       ),
       14,
       { color: CSS_COLORS.peach, lineSpacing: 4, wordWrap: { width: buttonWidth, useAdvancedWrap: true } },
