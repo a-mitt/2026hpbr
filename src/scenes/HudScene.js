@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
-import { CREDIT_LINES, REPORT_FORM_URL, TERMS_ITEMS } from "../data/notices.js";
+import { CREDIT_LINES, HOWTO_LINES, REPORT_FORM_URL, TERMS_ITEMS } from "../data/notices.js";
 import { getTasks } from "../data/tasks.js";
 import { dialogues, ekuboGiftLines } from "../data/dialogues.js";
 import { npcs } from "../data/npcs.js";
@@ -283,14 +283,15 @@ export class HudScene extends Phaser.Scene {
     }
 
     const entries = [
+      { label: t("遊び方", "How to Play"), onClick: () => this.showDetail(t("遊び方", "How to Play"), HOWTO_LINES) },
       { label: t("利用規約", "Terms of Use"), onClick: () => this.showDetail(t("利用規約", "Terms of Use"), TERMS_ITEMS) },
       { label: t("クレジット", "Credits"), onClick: () => this.showDetail(t("クレジット", "Credits"), CREDIT_LINES) },
     ];
     for (const entry of entries) {
-      const button = createButton(this, left + buttonWidth / 2, top + 28, buttonWidth, 56, entry.label, 24);
+      const button = createButton(this, left + buttonWidth / 2, top + 26, buttonWidth, 52, entry.label, 24);
       this.cursorManager.bind(button, "button", entry.onClick);
       this.settingsMenu.add(button);
-      top += 72;
+      top += 64;
     }
 
     const formReady = REPORT_FORM_URL !== "";
@@ -312,30 +313,43 @@ export class HudScene extends Phaser.Scene {
       formButton.disableInteractive();
     }
     this.settingsMenu.add(formButton);
-    top += 70;
+    top += 66;
     this.settingsMenu.add(this.addText(left, top, t("※ Googleフォームに飛びます（別のタブで開きます）", "* Opens a Google Form (in a new tab)"), 14, {
       color: CSS_COLORS.peach,
     }));
-    top += 40;
+    top += 34;
 
-    // 進み具合を消して最初からやり直す（押し間違い防止に、2回押したときだけ実行）
-    const resetButton = createButton(this, left + buttonWidth / 2, top + 24, buttonWidth, 48, t("進み具合をリセット", "Reset progress"), 20);
-    const resetLabel = resetButton.list[resetButton.list.length - 1];
-    let armed = false;
-    this.cursorManager.bind(resetButton, "button", () => {
-      if (!armed) {
-        armed = true;
-        resetLabel.setText(t("もう一度押すと、最初からになります", "Press again to start over"));
-        this.time.delayedCall(4000, () => {
-          armed = false;
-          resetLabel.setText(t("進み具合をリセット", "Reset progress"));
-        });
-        return;
-      }
-      save.reset();
-      window.location.reload();
-    });
-    this.settingsMenu.add(resetButton);
+    // 押し間違い防止に、2回押したときだけ実行
+    const addResetButton = (label, armedLabel, action) => {
+      const button = createButton(this, left + buttonWidth / 2, top + 22, buttonWidth, 44, label, 18);
+      const buttonLabel = button.list[button.list.length - 1];
+      let armed = false;
+      this.cursorManager.bind(button, "button", () => {
+        if (!armed) {
+          armed = true;
+          buttonLabel.setText(armedLabel);
+          this.time.delayedCall(4000, () => {
+            armed = false;
+            buttonLabel.setText(label);
+          });
+          return;
+        }
+        action();
+        window.location.reload();
+      });
+      this.settingsMenu.add(button);
+      top += 54;
+    };
+    addResetButton(
+      t("セリフ・エンディングをリセット", "Reset dialogue & endings"),
+      t("もう一度押すと、やり直せます（ハートは残ります）", "Press again (hearts are kept)"),
+      () => save.resetRun(),
+    );
+    addResetButton(
+      t("すべてリセット", "Reset everything"),
+      t("もう一度押すと、最初からになります", "Press again to start over"),
+      () => save.reset(),
+    );
 
     this.detailTitle = this.addText(left, 24, "", 28);
     this.detailBody = this.addText(left, 76, "", 15, {

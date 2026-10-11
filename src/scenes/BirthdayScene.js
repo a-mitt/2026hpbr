@@ -58,6 +58,24 @@ export class BirthdayScene extends Phaser.Scene {
     this.createCandles();
     this.createDarkness();
     this.createInstructions();
+    this.createSkipButton();
+  }
+
+  // 演出をとばして、お祝い画面へ進む
+  createSkipButton() {
+    this.skipButton = createButton(this, GAME_WIDTH - 82, 36, 130, 44, t("スキップ", "Skip"), 20).setDepth(90);
+    this.cursorManager.bind(this.skipButton, "button", () => this.skipToCelebration());
+  }
+
+  skipToCelebration() {
+    if (this.sceneState === "celebration") {
+      return;
+    }
+    this.skipButton.destroy();
+    this.tweens.killAll();
+    this.time.removeAllEvents();
+    this.cursorManager.reset();
+    this.showCelebration();
   }
 
   createGlowTexture() {
@@ -248,6 +266,7 @@ export class BirthdayScene extends Phaser.Scene {
 
   showCelebration() {
     this.sceneState = "celebration";
+    this.skipButton?.destroy();
     for (const object of this.introObjects) {
       object.setVisible(false);
     }

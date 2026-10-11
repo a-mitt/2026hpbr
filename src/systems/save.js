@@ -120,6 +120,12 @@ export const save = {
     commit();
   },
 
+  // 周回し直す用：ハート画面の回数だけ残して、セリフ・プレゼント・オブジェクト・エンディングなどを消す
+  resetRun() {
+    data = { ...emptyData(), counts: data.counts };
+    commit();
+  },
+
   reset() {
     data = emptyData();
     commit();
