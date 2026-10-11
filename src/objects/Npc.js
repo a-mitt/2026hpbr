@@ -43,7 +43,8 @@ export class Npc extends Phaser.GameObjects.Container {
         stroke: "#26343a",
         strokeThickness: 4,
         resolution: TEXT_RESOLUTION,
-      }).setOrigin(0.5).setVisible(false),
+        // 元の大きさ（CHARACTER_SCALE 1.7 のとき）のまま。キャラを大きくしても「!」は大きくしない
+      }).setOrigin(0.5).setScale(1.7 / CHARACTER_SCALE).setVisible(false),
     ];
 
     super(scene, npcData.x, npcData.y, parts);

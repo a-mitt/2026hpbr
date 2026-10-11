@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { GIFT_INFO, dialogues, ekuboGiftLines } from "../data/dialogues.js";
 import { npcs } from "../data/npcs.js";
+import { GAMING_TIE } from "../data/mapLayout.js";
 import { OBJECTS, SECRETS } from "../data/objects.js";
 import { createButton } from "../systems/Button.js";
 import { drawChibi } from "../systems/chibi.js";
@@ -22,6 +23,14 @@ const CHARA_TEXTURES = {
 // こやの大きさ（絵は392×408）としっぽを振る速さ
 const KOYA_SCALE = 0.36;
 const KOYA_WAG_MS = 220;
+const HEART_POOL_SIZE = 14;
+// オブジェクトの詳細に出す絵。マップで使っている絵があるものはそれを使う（無いものは object_{id}。金庫は絵なし）
+const OBJECT_PICTURES = { giftpile: "present", gamingtie: "tie_red" };
+// 絵を説明文の下の真ん中に大きく出すもの（無いものは右側に出す）
+const OBJECT_PICTURE_CENTER = { gamingtie: { x: 480, y: 350, maxW: 300, maxH: 190, maxScale: 5 } };
+// ミニこやの位置（セリフの「▶」ボタンの右）と、触れる範囲
+const MINI_KOYA = { x: 880, y: 432, w: 110, h: 130 };
+const MINI_KOYA_ART = { x: 703, y: 428 }; // 絵の中のこやの中心（画面全体に敷いたときの座標）
 const MARGIN = 16;
 // 未解放の項目の名前
 const UNKNOWN_LABEL = t("？？？", "???");
@@ -99,6 +108,9 @@ export class LibraryView {
 
   setVisible(isVisible) {
     this.container.setVisible(isVisible);
+    if (!isVisible) {
+      this.stopDetailAnimation();
+    }
     if (isVisible) {
       this.detail = null;
       this.render();
@@ -114,6 +126,8 @@ export class LibraryView {
   // 保存が変わったときなどに、いま開いている画面を描き直す
   render() {
     this.cursorManager.reset();
+    this.clearKoya();
+    this.stopDetailAnimation();
     // いま見ているタブの新着は見たことにする（印は他のタブに残る）
     save.clearNew(this.tab);
     this.tabDots.forEach((dot, index) => dot.setVisible(save.hasNew(index)));
@@ -147,11 +161,25 @@ export class LibraryView {
       return;
     }
     const scene = this.scene;
-    const koya = scene.add.container(840, 418).setSize(150, 150).setInteractive();
+    // プレゼント／セリフのタブでは、文字や絵に被らない「ミニこや」（1280×720の絵の右下に描いてあるので、画面全体に敷いて位置を合わせる）
+    const mini = this.tab === 0 || this.tab === 1;
+    const koya = mini
+      ? scene.add.container(MINI_KOYA.x, MINI_KOYA.y).setSize(MINI_KOYA.w, MINI_KOYA.h).setInteractive()
+      : scene.add.container(840, 418).setSize(150, 150).setInteractive();
+    this.koya = koya;
     koya.lastHeartAt = 0;
     koya.wagLeft = true;
-    if (scene.textures.exists("koya_idle")) {
-      koya.sprite = scene.add.image(0, 0, "koya_idle").setScale(KOYA_SCALE);
+    koya.hearts = []; // ハートの文字は使い回す（撫でるたびに作ると重くなる）
+    koya.keys = mini
+      ? { idle: "koya_mini_idle", left: "koya_mini_wag_left", right: "koya_mini_wag_right" }
+      : { idle: "koya_idle", left: "koya_wag_left", right: "koya_wag_right" };
+    if (scene.textures.exists(koya.keys.idle)) {
+      koya.sprite = scene.add.image(0, 0, koya.keys.idle);
+      if (mini) {
+        koya.sprite.setOrigin(0).setPosition(-MINI_KOYA_ART.x, -MINI_KOYA_ART.y).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+      } else {
+        koya.sprite.setScale(KOYA_SCALE);
+      }
     } else {
       koya.sprite = scene.add.circle(0, 0, 50, 0xf6d9b0).setStrokeStyle(3, 0x5a3320);
     }
@@ -166,12 +194,35 @@ export class LibraryView {
     this.body.add(koya);
   }
 
+  // 詳細ページの絵のアニメーション（ゲーミングネクタイの色替え）を止める
+  stopDetailAnimation() {
+    this.detailTimer?.remove(false);
+    this.detailTimer = null;
+  }
+
+  // 描き直す前に、こやのタイマーとハートの動きを止める（消えた絵に触って止まるのを防ぐ）
+  clearKoya() {
+    const koya = this.koya;
+    if (!koya) {
+      return;
+    }
+    this.koya = null;
+    koya.wagEvent?.remove(false);
+    koya.restTimer?.remove(false);
+    koya.wagEvent = null;
+    koya.restTimer = null;
+    this.scene.tweens.killTweensOf(koya.hearts);
+  }
+
   petKoya(koya) {
     const scene = this.scene;
     // 撫でている間は、しっぽを左右に振る
-    if (!koya.wagEvent && scene.textures.exists("koya_wag_left")) {
+    if (!koya.wagEvent && scene.textures.exists(koya.keys.left)) {
       const wag = () => {
-        koya.sprite.setTexture(koya.wagLeft ? "koya_wag_left" : "koya_wag_right");
+        if (!koya.active) {
+          return;
+        }
+        koya.sprite.setTexture(koya.wagLeft ? koya.keys.left : koya.keys.right);
         koya.wagLeft = !koya.wagLeft;
       };
       wag();
@@ -181,8 +232,8 @@ export class LibraryView {
     koya.restTimer = scene.time.delayedCall(450, () => {
       koya.wagEvent?.remove(false);
       koya.wagEvent = null;
-      if (koya.active && scene.textures.exists("koya_idle")) {
-        koya.sprite.setTexture("koya_idle");
+      if (koya.active && scene.textures.exists(koya.keys.idle)) {
+        koya.sprite.setTexture(koya.keys.idle);
       }
     });
 
@@ -193,20 +244,27 @@ export class LibraryView {
     }
     koya.lastHeartAt = now;
     const colors = ["#f49ac1", "#ff7fa8", "#ffb3c8"];
-    const heart = this.addText(
-      koya.x + Phaser.Math.Between(-70, 70),
-      koya.y + Phaser.Math.Between(-70, 20),
-      "♥",
-      Phaser.Math.Between(18, 34),
-      { color: Phaser.Utils.Array.GetRandom(colors) },
-    ).setOrigin(0.5).setAngle(Phaser.Math.Between(-25, 25));
-    this.body.add(heart);
+    let heart = koya.hearts.find((h) => !h.visible);
+    if (!heart && koya.hearts.length < HEART_POOL_SIZE) {
+      heart = this.addText(0, 0, "♥", 32).setOrigin(0.5);
+      this.body.add(heart);
+      koya.hearts.push(heart);
+    }
+    if (!heart) {
+      return;
+    }
+    heart.setPosition(koya.x + Phaser.Math.Between(-70, 70), koya.y + Phaser.Math.Between(-70, 20))
+      .setScale(Phaser.Math.Between(18, 34) / 32)
+      .setColor(Phaser.Utils.Array.GetRandom(colors))
+      .setAngle(Phaser.Math.Between(-25, 25))
+      .setAlpha(1)
+      .setVisible(true);
     scene.tweens.add({
       targets: heart,
       y: heart.y - Phaser.Math.Between(40, 90),
       alpha: 0,
       duration: Phaser.Math.Between(600, 1000),
-      onComplete: () => heart.destroy(),
+      onComplete: () => heart.setVisible(false),
     });
   }
 
@@ -413,12 +471,48 @@ export class LibraryView {
         locked,
         icon: this.markIcon(locked),
         onClick: () => this.openDetail(() => {
+          // 絵があるときは右に出して、説明文は左の細い幅にする
+          const key = OBJECT_PICTURES[object.id] ?? `object_${object.id}`;
+          const hasPicture = this.scene.textures.exists(key);
+          const center = OBJECT_PICTURE_CENTER[object.id];
           this.body.add([
             this.addText(60, 136, object.name, 30),
-            this.addText(60, 190, object.text, 19, { lineSpacing: 8, wordWrap: { width: 840, useAdvancedWrap: true } }),
+            this.addText(60, 190, object.text, 19, {
+              lineSpacing: 8,
+              wordWrap: { width: hasPicture && !center ? 560 : 840, useAdvancedWrap: true },
+            }),
           ]);
+          if (hasPicture) {
+            const picture = center
+              ? this.scene.add.image(center.x, center.y, key)
+              : this.scene.add.image(770, 255, key);
+            if (object.id === "gamingtie") {
+              this.animateTie(picture);
+            }
+            picture.setScale(center
+              ? Math.min(center.maxW / picture.width, center.maxH / picture.height, center.maxScale)
+              : Math.min(240 / picture.width, 190 / picture.height, 1.6));
+            this.body.add(picture);
+          }
         }),
       });
+    });
+  }
+
+  // マップと同じように、ゲーミングネクタイの色を順番に切り替えて光らせる
+  animateTie(picture) {
+    const keys = GAMING_TIE.files.map((file) => file.key).filter((key) => this.scene.textures.exists(key));
+    let index = 0;
+    this.detailTimer = this.scene.time.addEvent({
+      delay: GAMING_TIE.intervalMs,
+      loop: true,
+      callback: () => {
+        if (!picture.active) {
+          return;
+        }
+        index = (index + 1) % keys.length;
+        picture.setTexture(keys[index]);
+      },
     });
   }
 
@@ -469,6 +563,12 @@ export class LibraryView {
       const watch = createButton(scene, 60 + 130, 270, 260, 60, t("もう一度見る", "Watch again"), 24);
       this.cursorManager.bind(watch, "button", () => {
         this.cursorManager.reset();
+        if (secret.id === "true_end") {
+          // トゥルーエンドは夜のシーンから見直す（終わったらライブラリに戻る）
+          scene.setPanel(null);
+          scene.scene.get("FieldScene").startNight(true);
+          return;
+        }
         scene.scene.launch("EndingScene", { kind: endings[secret.id], replay: true });
       });
       this.body.add(watch);

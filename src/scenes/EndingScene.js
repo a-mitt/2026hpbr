@@ -67,10 +67,13 @@ export class EndingScene extends Phaser.Scene {
   }
 
   // replay＝ライブラリのシークレットから見直しているとき（最後は「閉じる」で、ライブラリに戻る）
-  create({ kind = new URLSearchParams(location.search).get("kind") ?? "true", replay = false } = {}) {
+  create({ kind = new URLSearchParams(location.search).get("kind") ?? "true", replay = false, fromNight = false } = {}) {
     this.replay = replay;
+    this.fromNight = fromNight; // 夜のシーンから見直したとき：閉じたらマップに戻してライブラリを開く
     this.ending = ENDINGS[kind];
     this.pageIndex = -1;
+    // シーンは使い回されるので、前に見たときの「最後まで見た」を引き継がない（引き継ぐと2回目は何も出ず、何も押せない）
+    this.finished = false;
     this.cursorManager = new CursorManager(this.game);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cursorManager.reset());
     save.unlockSecret(this.ending.secret);
@@ -144,7 +147,10 @@ export class EndingScene extends Phaser.Scene {
     const button = createButton(this, CX, 400, 260, 64, buttonLabel, 26).setAlpha(0);
     this.cursorManager.bind(button, "button", () => {
       this.cursorManager.reset();
-      if (this.replay) {
+      if (this.fromNight) {
+        this.game.registry.set("reopenLibrary", true);
+        this.scene.start("FieldScene");
+      } else if (this.replay) {
         this.scene.stop();
       } else {
         this.scene.start("IntroScene");

@@ -16,6 +16,18 @@ const cursorPlaceholders = {
   },
 };
 
+// 会話などを閉じた直後は、そのクリック／キー入力の続きが下の物に届いて「二重に押した」ことにならないよう、少しのあいだ無視する
+let clicksBlockedUntil = 0;
+export const CLOSE_GRACE_MS = 300;
+
+export function blockClicksFor(ms = CLOSE_GRACE_MS) {
+  clicksBlockedUntil = performance.now() + ms;
+}
+
+export function clicksBlocked() {
+  return performance.now() < clicksBlockedUntil;
+}
+
 function createCursorUrl(svg) {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
@@ -64,7 +76,7 @@ export class CursorManager {
       gameObject.on("pointerup", (pointer) => {
         const wasPressed = pressed;
         pressed = false;
-        if (wasPressed && pointer.getDistance() <= CLICK_MOVE_LIMIT) {
+        if (wasPressed && pointer.getDistance() <= CLICK_MOVE_LIMIT && !clicksBlocked()) {
           onClick(pointer);
         }
       });

@@ -49,6 +49,13 @@ export class HudScene extends Phaser.Scene {
       this.cursorManager.reset();
     });
 
+    // トゥルーエンドを夜から見直したあと：ライブラリのシークレットを開いた状態で戻る
+    if (this.game.registry.get("reopenLibrary")) {
+      this.game.registry.set("reopenLibrary", false);
+      this.setPanel("library");
+      this.library.selectTab(4);
+    }
+
     // 開発中だけ：?panel=settings / library / terms / credits で最初から開く
     const devQuery = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
     const devPanel = devQuery?.get("panel");

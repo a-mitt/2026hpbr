@@ -10,6 +10,7 @@ const LEAVE_EACH = 100; // 4つのお祝いが、それぞれ100回（合計400�
 const LIMIT = 1000; // 帰ったあと、4つとも1000回で、原作の隆が出てくる
 const LIMIT_TAKASHI = 4000; // 隆が出たあと、4つとも4000回で、風呂上がりの隆になる
 const TEXT_RESOLUTION = 2;
+const MAX_EFFECTS = 120; // 画面に同時に出しておく演出の数の上限
 // れーあらの絵（中心）。大きさは PICTURE_MAX の中に収める
 const PICTURE_Y = 236;
 const PICTURE_MAX = { width: 600, height: 332 };
@@ -29,7 +30,7 @@ const CONFETTI_COLORS = [0xff6b6b, 0xffd93d, 0x6bcB77, 0x4d96ff, 0xf49ac1, 0xb38
 
 // ハート画面（全画面）。れーあらに、4つのお祝いを送る。
 // 4つのお祝いの回数の合計で、れーあらの絵が変わる（25／50／75）。4つとも100回（合計400回）で「こや」を置いて帰る（こやはライブラリにいる）。
-// 帰ったあともボタンは押せる（反応なし）。4つとも1000回で上限になり、原作の隆が出てくる
+// 帰ったあともボタンは押せる（演出は出る）。4つとも1000回で上限になり、原作の隆が出てくる
 export class HeartView {
   constructor(scene, cursorManager) {
     this.scene = scene;
@@ -209,15 +210,18 @@ export class HeartView {
     this.container.add(this.caption);
   }
 
-  // ボタンを押す。れーあらがいる間だけ、演出と絵の変化がある（帰ったあとは数えるだけ）
+  // ボタンを押す。演出は常に出る。絵が変わるのは、れーあらがいる間だけ
   celebrate(action) {
     const phase = this.phase();
     // 数えるのは、帰るまでは100回まで、帰ったあとは1000回まで
     if (save.count(action.id) < this.goal()) {
       save.addCount(action.id);
     }
-    if (phase === "reia") {
+    // 演出は帰ったあとも出す（絵が変わるのは、れーあらがいる間だけ）。連打で演出が溜まりすぎないよう上限をつける
+    if (this.effects.length < MAX_EFFECTS) {
       this.spawnEffect(action.id);
+    }
+    if (phase === "reia") {
       this.showPicture();
     }
     this.updateCounters();

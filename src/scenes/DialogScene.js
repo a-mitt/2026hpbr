@@ -4,6 +4,7 @@ import { save } from "../systems/save.js";
 import { COLORS, FONTS } from "../theme.js";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { t } from "../systems/i18n.js";
+import { blockClicksFor } from "../systems/CursorManager.js";
 
 // 会話枠（画面の下）と本文：幅と行数。これを超える長さは次のページに分ける
 const BOX_HEIGHT = 180;
@@ -77,7 +78,8 @@ export class DialogScene extends Phaser.Scene {
     this.portraitOverrides = portraits;
 
     // 立ち絵が見やすいよう、マップ全体を少し暗くする
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM);
+    // 押せる物にしておくと、下にある画面のボタンに押した操作が届かない
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM).setInteractive();
     this.createStands(npc);
 
     this.add.rectangle(GAME_WIDTH / 2, BOX_TOP + BOX_HEIGHT / 2, GAME_WIDTH, BOX_HEIGHT, COLORS.bgDark, 0.74)
@@ -277,6 +279,7 @@ export class DialogScene extends Phaser.Scene {
   }
 
   endDialog() {
+    blockClicksFor();
     this.scene.stop();
     this.scene.resume("FieldScene");
     this.onFinish?.();

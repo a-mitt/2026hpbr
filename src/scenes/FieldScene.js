@@ -38,7 +38,7 @@ import {
 } from "../data/mapLayout.js";
 import { FOOT_OFFSET, MAP_HEIGHT, MAP_WIDTH, TALK_DISTANCE } from "../constants.js";
 import { FONTS } from "../theme.js";
-import { CursorManager } from "../systems/CursorManager.js";
+import { CursorManager, clicksBlocked } from "../systems/CursorManager.js";
 import { DebugOverlay } from "../systems/DebugOverlay.js";
 import { VirtualStick } from "../systems/VirtualStick.js";
 import { t } from "../systems/i18n.js";
@@ -50,6 +50,9 @@ const STAND_ASSET_DIR = `${import.meta.env.BASE_URL}assets/stand/`;
 const HEART_ASSET_DIR = `${import.meta.env.BASE_URL}assets/heart/`;
 const BIRTHDAY_ASSET_DIR = `${import.meta.env.BASE_URL}assets/birthday/`;
 const KOYA_ASSET_DIR = `${import.meta.env.BASE_URL}assets/koya/`;
+// 暗い階段に立つ守衛のエクボの色味（乗算の幕は使わず、絵に直接かける）
+const GUARD_DIM_TINT = 0x8f8fa8;
+const OBJECT_ASSET_DIR = `${import.meta.env.BASE_URL}assets/objects/`;
 // 霊幻の立ち絵の表情（会話・エンディングで使う）。キーは stand_reigen_表情
 export const REIGEN_FACES = ["normal", "happy", "surprise", "littlesad", "smile", "angry", "alone", "alonebad", "happyend", "normalend"];
 // キャラ絵（public/assets/chara/）。キーは "chara_" + ファイル名
@@ -92,8 +95,13 @@ export class FieldScene extends Phaser.Scene {
     // ライブラリのシークレットで見直す、お祝いの一枚絵
     this.load.setPath(BIRTHDAY_ASSET_DIR);
     this.load.image("birthday_picture", "birthday.png");
+    // ライブラリの「オブジェクト」の詳細に出す絵（絵ができたものから追加。名前は objects.js の id）
+    this.load.setPath(OBJECT_ASSET_DIR);
+    for (const id of ["sash", "planter"]) {
+      this.load.image(`object_${id}`, `${id}.png`);
+    }
     this.load.setPath(KOYA_ASSET_DIR);
-    for (const name of ["idle", "wag_left", "wag_right"]) {
+    for (const name of ["idle", "wag_left", "wag_right", "mini_idle", "mini_wag_left", "mini_wag_right"]) {
       this.load.image(`koya_${name}`, `${name}.png`);
     }
     this.load.setPath(STAND_ASSET_DIR);
@@ -114,6 +122,9 @@ export class FieldScene extends Phaser.Scene {
     resetSession();
     this.toiletDoorOpened = false;
     this.inputLocked = false;
+    this.replayNight = false;
+    this.overlayOpen = false;
+    this.takoyakiSprite = null; // 前回の（もう消えた）絵を引き継がない
     doorState.toiletOpen = false;
     this.currentRoomId = null;
     this.buildMap();
@@ -127,7 +138,10 @@ export class FieldScene extends Phaser.Scene {
     this.setupSelfClick();
     this.setupEkubo();
     this.buildSpots();
-    this.events.on(Phaser.Scenes.Events.RESUME, () => this.restoreNpcCursor());
+    this.events.on(Phaser.Scenes.Events.RESUME, () => {
+      this.overlayOpen = false;
+      this.restoreNpcCursor();
+    });
     // 常にキャラが画面の中心（遅れなし）。マップの端では外側の黒が見える
     this.cameras.main.startFollow(this.player, true, 1, 1);
     this.confirmKeys = this.input.keyboard.addKeys({
@@ -145,8 +159,7 @@ export class FieldScene extends Phaser.Scene {
       this.time.delayedCall(100, () => this.startNight());
     }
     if (query?.get("exit")) {
-      this.scene.launch("ExitPromptScene");
-      this.scene.pause();
+      this.launchOverlay("ExitPromptScene");
     }
     this.virtualStick = new VirtualStick(this);
     this.updateRoomDarkness(true);
@@ -174,7 +187,7 @@ export class FieldScene extends Phaser.Scene {
       this.add.image(balloon.x, balloon.y, balloon.key).setOrigin(0).setDepth(balloon.sortY);
     }
     this.gamingTies = GAMING_TIE.files.map((tie, index) => this.add
-      .image(GAMING_TIE.x, GAMING_TIE.y, tie.key).setOrigin(0).setDepth(GAMING_TIE.sortY)
+      .image(GAMING_TIE.x, GAMING_TIE.y, tie.key).setOrigin(0).setScale(GAMING_TIE.scale).setDepth(GAMING_TIE.sortY)
       .setVisible(index === 0));
     this.gamingTieIndex = 0;
     this.time.addEvent({
@@ -326,8 +339,7 @@ export class FieldScene extends Phaser.Scene {
     }
     this.cursorManager.reset();
     this.virtualStick.reset();
-    this.scene.launch("ExitPromptScene");
-    this.scene.pause();
+    this.launchOverlay("ExitPromptScene");
   }
 
   // 遠いところを押したときの案内（その場所の上に一瞬だけ出る）
@@ -384,7 +396,7 @@ export class FieldScene extends Phaser.Scene {
     const confirmPressed = Phaser.Input.Keyboard.JustDown(this.confirmKeys.space)
       || Phaser.Input.Keyboard.JustDown(this.confirmKeys.enter);
 
-    if (confirmPressed) {
+    if (confirmPressed && !clicksBlocked()) {
       if (this.closestNpc) {
         this.startConversation(this.closestNpc);
       } else if (this.nearestSpot()) {
@@ -463,7 +475,7 @@ export class FieldScene extends Phaser.Scene {
       onFinish = () => save.giveGift(id);
     }
 
-    this.scene.launch("DialogScene", {
+    this.launchOverlay("DialogScene", {
       npc: { id: npc.id, name: npc.name, color: npc.color },
       lines,
       dialogKey,
@@ -471,7 +483,17 @@ export class FieldScene extends Phaser.Scene {
       gift,
       portraits,
     });
+  }
+
+  // 会話・選択画面を重ねて、マップを止める。すでに何か開いているときは何もしない（別の物を押しても二重に開かない）
+  launchOverlay(key, data) {
+    if (this.overlayOpen) {
+      return false;
+    }
+    this.overlayOpen = true;
+    this.scene.launch(key, data);
     this.scene.pause();
+    return true;
   }
 
   // ---- エクボ ----
@@ -498,6 +520,8 @@ export class FieldScene extends Phaser.Scene {
     this.ekubo.setSkin("chara_guard_side");
     // 暗い階段の中でも見えるよう、部屋の暗さ（乗算）より手前に出す
     this.ekubo.setPosition(EKUBO_DOOR_POS.x, EKUBO_DOOR_POS.y).setDepth(90001).setVisible(true);
+    // 暗い階段にいるので、乗算の幕の代わりに少し暗くする（話しかけて階段が明るくなったら戻す）
+    this.ekubo.sprite.setTint(GUARD_DIM_TINT);
   }
 
   // 1回目のあと、幽霊のエクボが画面の外に出たら消えて、玄関の外に守衛のエクボが立つ
@@ -531,7 +555,8 @@ export class FieldScene extends Phaser.Scene {
     this.cursorManager.reset();
     this.virtualStick.reset();
     this.lightStairs(true);
-    this.scene.launch("DialogScene", {
+    this.ekubo.sprite.clearTint();
+    this.launchOverlay("DialogScene", {
       npc: { id: this.ekubo.id, name: this.ekubo.name, color: this.ekubo.color },
       lines: ekuboGiftLines,
       dialogKey: "ekubo2",
@@ -539,7 +564,6 @@ export class FieldScene extends Phaser.Scene {
       portraits: { エクボ: "chara_guard_side" },
       onFinish: () => this.finishEkuboGift(),
     });
-    this.scene.pause();
   }
 
   // 暗転して、エクボを元の場所（エアコンの下）へ移す
@@ -576,17 +600,18 @@ export class FieldScene extends Phaser.Scene {
   sayLines(lines, onFinish = null) {
     this.cursorManager.reset();
     this.virtualStick.reset();
-    this.scene.launch("DialogScene", {
+    this.launchOverlay("DialogScene", {
       npc: { id: "reigen", name: "霊幻", color: 0x397cca },
       lines,
       dialogKey: null,
       onFinish,
     });
-    this.scene.pause();
   }
 
   // ---- 夜（エンディング：1人で残る） ----
-  startNight() {
+  // replay＝ライブラリのシークレットから見直しているとき（終わったらライブラリに戻る）
+  startNight(replay = false) {
+    this.replayNight = replay;
     const camera = this.cameras.main;
     this.inputLocked = true;
     camera.fadeOut(800, 0, 0, 0);
@@ -642,7 +667,7 @@ export class FieldScene extends Phaser.Scene {
     camera.fadeOut(1000, 0, 0, 0);
     camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.stop("HudScene");
-      this.scene.start("EndingScene", { kind: "true" });
+      this.scene.start("EndingScene", { kind: "true", replay: this.replayNight, fromNight: this.replayNight });
     });
   }
 
@@ -751,10 +776,9 @@ export class FieldScene extends Phaser.Scene {
     const spot = this.nearestSpot(true);
     this.spotHint.setVisible(Boolean(spot));
     if (spot) {
-      // 大きい物は、近い側の端の上に「!」を出す（中央だと遠く見える）
+      // 「!」はキャラについて動かさず、調べる物の真ん中あたりに固定する（押せるのは物のどこでも）
       const { hit } = spot;
-      const x = Phaser.Math.Clamp(this.player.x, hit.x + 20, hit.x + hit.w - 20);
-      this.spotHint.setPosition(x, hit.y - 12);
+      this.spotHint.setPosition(hit.x + hit.w / 2, hit.y + hit.h * 0.4);
     }
   }
 
