@@ -9,13 +9,13 @@ const npcHints = (id, ja, en, giftJa, giftEn) => ({ id, ja, en, giftJa, giftEn }
 
 // 人ごとのヒント。presents＝プレゼント／コレクション、dialogue＝セリフ
 const PEOPLE = [
-  npcHints("tome", NPC_HINT_JA("トメさん"), NPC_HINT_EN("Tome"), "トメさんに話しかけると、もらえるかも。", "Talk to Tome and you might receive something."),
-  npcHints("ritsu", NPC_HINT_JA("律くん"), NPC_HINT_EN("Ritsu"), "律くんに話しかけると、もらえるかも。", "Talk to Ritsu and you might receive something."),
-  npcHints("shou", NPC_HINT_JA("ショウくん"), NPC_HINT_EN("Shou"), "ショウくんに話しかけると、もらえるかも。", "Talk to Shou and you might receive something."),
-  npcHints("mob", NPC_HINT_JA("モブくん"), NPC_HINT_EN("Mob"), "モブくんに話しかけると、もらえるかも。", "Talk to Mob and you might receive something."),
+  npcHints("tome", NPC_HINT_JA("トメ"), NPC_HINT_EN("Tome"), "トメに話しかけると、もらえるかも。", "Talk to Tome and you might receive something."),
+  npcHints("ritsu", NPC_HINT_JA("律"), NPC_HINT_EN("Ritsu"), "律に話しかけると、もらえるかも。", "Talk to Ritsu and you might receive something."),
+  npcHints("shou", NPC_HINT_JA("ショウ"), NPC_HINT_EN("Shou"), "ショウに話しかけると、もらえるかも。", "Talk to Shou and you might receive something."),
+  npcHints("mob", NPC_HINT_JA("モブ"), NPC_HINT_EN("Mob"), "モブに話しかけると、もらえるかも。", "Talk to Mob and you might receive something."),
   npcHints("ekubo", NPC_HINT_JA("エクボ"), NPC_HINT_EN("Ekubo"), "エクボに話しかけると、もらえるかも。奥の部屋も見てみよう。", "Talk to Ekubo and you might receive something. Check the back room, too."),
-  npcHints("teru", NPC_HINT_JA("テルくん"), NPC_HINT_EN("Teru"), "テルくんに話しかけると、もらえるかも。", "Talk to Teru and you might receive something."),
-  npcHints("serizawa", NPC_HINT_JA("芹沢くん"), NPC_HINT_EN("Serizawa"), "芹沢くんに話しかけると、もらえるかも。", "Talk to Serizawa and you might receive something."),
+  npcHints("teru", NPC_HINT_JA("テル"), NPC_HINT_EN("Teru"), "テルに話しかけると、もらえるかも。", "Talk to Teru and you might receive something."),
+  npcHints("serizawa", NPC_HINT_JA("芹沢"), NPC_HINT_EN("Serizawa"), "芹沢に話しかけると、もらえるかも。", "Talk to Serizawa and you might receive something."),
 ];
 
 const byId = (id) => PEOPLE.find((entry) => entry.id === id);
@@ -24,7 +24,7 @@ export const dialogueHint = (npcId) => t(byId(npcId)?.ja ?? "", byId(npcId)?.en 
 export const giftHint = (npcId) => t(byId(npcId)?.giftJa ?? "", byId(npcId)?.giftEn ?? "");
 // コレクション（立ち絵）は、プレゼントと同じ条件で解放される
 export const collectionHint = (npcId) => t(
-  "プレゼントをもらうと、この人の絵が見られるようになるよ。",
+  "プレゼントをもらうと、この人の情報が見られるようになるよ。",
   "Receive this person's present to see their picture here.",
 );
 
@@ -32,7 +32,7 @@ const OBJECT_HINTS = {
   giftpile: t("部屋のすみに、プレゼントが山になっている。近づいて調べてみよう。", "There's a pile of presents in a corner of the room. Get close and check it out."),
   gamingtie: t("奥の部屋に、変わった光り方をするものがある。", "Something in the back room glows in an unusual way."),
   sash: t("自分の体を調べてみよう。そこにも何かあるかも。", "Try examining yourself. There might be something there, too."),
-  planter: t("緑の植物をよく調べてみよう。足元がポイント。", "Look closely at the green plant. Check around its base."),
+  planter: t("緑の植物をよく調べてみよう。足元がポイント。モブと被らない場所を調べよう。", "Look closely at the green plant. Check around its base."),
   safe: t("デスクのまわりを調べてみよう。下に何かあるみたい。", "Examine around the desk. There seems to be something underneath."),
 };
 export const objectHint = (id) => OBJECT_HINTS[id] ?? t("マップのいろいろな場所を調べてみよう。", "Try examining various places on the map.");

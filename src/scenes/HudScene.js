@@ -281,6 +281,12 @@ export class HudScene extends Phaser.Scene {
     const buttonWidth = PANEL_WIDTH - 60;
     let top = 24;
     this.settingsMenu.add(this.addText(left, top, t("設定", "Settings"), 28));
+    // 全画面（iPhoneのSafariは非対応なので出さない）
+    if (this.scale.fullscreen.available) {
+      const fullscreenButton = createButton(this, left + buttonWidth - 75, top + 18, 150, 36, t("全画面", "Fullscreen"), 18);
+      this.cursorManager.bind(fullscreenButton, "button", () => this.scale.toggleFullscreen());
+      this.settingsMenu.add(fullscreenButton);
+    }
     top += 54;
 
     if (this.sys.game.device.input.touch) {
@@ -364,6 +370,19 @@ export class HudScene extends Phaser.Scene {
       () => save.reset(),
     );
 
+    const fullscreenNote = this.addText(
+      left,
+      top + 6,
+      t(
+        "【全画面について】\nAndroidなどは、右上の「全画面」ボタンで全画面にできます。\niPhoneは全画面ボタンが使えないので、Safariで開いて、下の共有ボタン →「ホーム画面に追加」を押し、追加されたアイコンから開くと、アプリのように全画面で遊べます。",
+        "[About fullscreen]\nOn Android and similar, use the Fullscreen button at the top right.\nOn iPhone, open this page in Safari, tap the Share button, choose \"Add to Home Screen\", then open the new icon to play fullscreen like an app.",
+      ),
+      14,
+      { color: CSS_COLORS.peach, lineSpacing: 4, wordWrap: { width: buttonWidth, useAdvancedWrap: true } },
+    );
+    this.settingsMenu.add(fullscreenNote);
+    this.setupMenuScroll(top + 6 + fullscreenNote.height + 24);
+
     this.detailTitle = this.addText(left, 24, "", 28);
     this.detailBody = this.addText(left, 76, "", 15, {
       lineSpacing: 6,
@@ -378,6 +397,25 @@ export class HudScene extends Phaser.Scene {
     }));
   }
 
+  // 設定の目次が画面に収まらないとき、ホイールかドラッグで上下にずらせるようにする
+  setupMenuScroll(contentHeight) {
+    const minY = Math.min(0, GAME_HEIGHT - contentHeight);
+    const scrollTo = (y) => this.settingsMenu.setY(Phaser.Math.Clamp(y, minY, 0));
+    if (minY === 0) {
+      return;
+    }
+    this.input.on("wheel", (pointer, over, dx, dy) => {
+      if (this.openPanel === "settings" && this.settingsMenu.visible) {
+        scrollTo(this.settingsMenu.y - dy);
+      }
+    });
+    this.input.on("pointermove", (pointer) => {
+      if (pointer.isDown && this.openPanel === "settings" && this.settingsMenu.visible && pointer.x >= PANEL_X) {
+        scrollTo(this.settingsMenu.y + (pointer.y - pointer.prevPosition.y));
+      }
+    });
+  }
+
   showDetail(title, lines) {
     this.detailTitle.setText(title);
     this.detailBody.setText(lines.join("\n"));
@@ -386,7 +424,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   showMenu() {
-    this.settingsMenu.setVisible(true);
+    this.settingsMenu.setVisible(true).setY(0);
     this.settingsDetail.setVisible(false);
   }
 

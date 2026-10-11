@@ -42,7 +42,7 @@ export const OBJECTS = [
     id: "safe",
     name: t("金庫", "Safe"),
     text: t(
-      "デスクの下には金庫がある。だが、みんながいる間は開けられない。",
+      "デスクの下には金庫がある。だが、みんながいる間は開けたくない。",
       "There's a safe under the desk. But I can't open it while everyone's here.",
     ),
   },
@@ -52,8 +52,8 @@ export const OBJECTS = [
 export const SECRETS = [
   { id: "happy_picture", name: t("HAPPY BIRTHDAY！の一枚絵", "HAPPY BIRTHDAY! Illustration") },
   { id: "koya", name: t("こや", "Koya") },
-  { id: "takashi", name: t("原作の隆", "Takashi (Original)") },
-  { id: "takashi_bath", name: t("原作の隆（風呂上がり）", "Takashi (After the Bath)") },
+  { id: "takashi", name: t("原作隆", "Takashi (Original)") },
+  { id: "takashi_bath", name: t("原作隆（風呂上がり）", "Takashi (After the Bath)") },
   { id: "true_end", name: t("トゥルーエンド", "True Ending") },
   { id: "normal_end", name: t("ノーマルエンド", "Normal Ending") },
   { id: "bad_end", name: t("バッドエンド", "Bad Ending") },
