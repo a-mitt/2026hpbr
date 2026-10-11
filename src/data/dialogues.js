@@ -62,7 +62,7 @@ export const dialogues = {
     reigen("ありがとうな！使わせてもらうよ。やっぱりテルくんはこういうところセンスいいよな。", "Thanks! I'll use it. As expected, Teru-kun has great taste in this kind of thing.", "smile"),
     think("服以外は…", "Except for clothes..."),
     say("テル", "ふふ、本当は服と迷ったんだけど…", "Hehe, actually I was torn between this and clothes..."),
-    think("ドキッ。", "Gulp.", "surprise"),
+    think("ドキッ", "Gulp", "surprise"),
     say("テル", "人それぞれ好みはあるかなって、一旦やめたんだ。", "I figured everyone has their own tastes, so I held off for now."),
     reigen("へ、へー！実は俺結構好み特殊だからあんま服は向いてないかもな！！でもありがとう気持ちだけありがたく受け取っとく。", "R-right! Honestly my taste is pretty particular, so clothes might not suit me! But thanks, I'll gladly take the thought!", "surprise"),
     say("テル", "そうですか？欲しくなったらいつでも言ってくださいね。", "Is that so? Tell me anytime if you ever want some."),
@@ -74,7 +74,7 @@ export const dialogues = {
     reigen("ええー！何でだよ！！", "Whaat! Why!!", "surprise"),
     say("芹沢", "その……そういえば霊幻さんも付けてないなと思ったので…両親や店員さんにも相談したんですが、その、業務内容的には大丈夫なんでしょうか…", "Well... I realized you don't wear one either, Reigen-san... I asked my parents and the shop staff too, but, um, is it okay for the work we do...?"),
     reigen("は？", "Huh?", "angry"),
-    say("芹沢", "ヒ。", "Eek."),
+    say("芹沢", "ヒ", "Eek"),
     reigen("大丈夫に決まってんだろ！ありがとうな。", "Of course it's okay! Thanks.", "happy"),
     think("相談できるなんて成長したな…", "He asked people for advice. He's grown...", "smile"),
     say("芹沢", "ほっ………", "*Phew*......"),
@@ -120,11 +120,11 @@ export function thinkLines(text, limit = 44) {
 // プレゼントをもらったあとに話しかけたとき
 export const afterGiftLines = {
   tome: [say("トメ", "お誕生日おめでとう！", "Happy birthday!")],
-  ritsu: [say("律", "…お誕生日おめでとうございます", "...Happy birthday.")],
+  ritsu: [say("律", "…お誕生日おめでとうございます。", "...Happy birthday.")],
   shou: [say("ショウ", "誕生日おめでとうな！", "Happy birthday!")],
   mob: [say("モブ", "お誕生日おめでとうございます、師匠。", "Happy birthday, Master.")],
   teru: [say("テル", "お誕生日おめでとうございます！", "Happy birthday!")],
-  serizawa: [say("芹沢", "お誕生日おめでとうございます", "Happy birthday.")],
+  serizawa: [say("芹沢", "お誕生日おめでとうございます。", "Happy birthday.")],
 };
 
 // エクボ：1回目のあとに話しかけたとき（まだ近くにいる）
@@ -132,10 +132,10 @@ export const ekuboWaitingLines = [say("エクボ", "………", "......")];
 
 // エクボ：玄関から戻ってきたあと。話しかけるたびに次へ進み、最後は繰り返す
 export const ekuboAfterLines = [
-  [say("エクボ", "……なんだよ、もう本当になんもねえぞ", "...What, I really have nothing else for you.")],
-  [say("エクボ", "しつけえな", "You're persistent.")],
+  [say("エクボ", "……なんだよ、もう本当になんもねえぞ。", "...What, I really have nothing else for you.")],
+  [say("エクボ", "しつけえな。", "You're persistent.")],
   [say("エクボ", "………", "......")],
-  [say("エクボ", "……おめっとさん", "...Happy birthday, I guess.")],
+  [say("エクボ", "……おめっとさん。", "...Happy birthday, I guess.")],
 ];
 
 // ライブラリ・コレクション用の情報。episode＝霊の思い・エピソード、meaning＝プレゼントの意味（薄字）
@@ -167,7 +167,7 @@ export const GIFT_INFO = {
   ekubo: {
     gift: t("たこ焼き", "Takoyaki"),
     note: t("よく行く近くのたこ焼き屋のもの。まだアツアツだ。", "From the takoyaki shop he often goes to nearby. Still piping hot."),
-    episode: t("中に何か入っている。……シロツメクサの花束のようだ。器用に茎で結ばれている。……アイツは本当に悪霊か？結局プレゼントな気満々じゃねーか", "There's something inside. ...It looks like a bouquet of white clover. Neatly tied together with the stems. ...Is that guy really an evil spirit? He clearly meant this as a present."),
+    episode: t("中に何か入っている。……シロツメクサの花束のようだ。器用に茎で結ばれている。……アイツは本当に悪霊か？結局プレゼントな気満々じゃねーか。", "There's something inside. ...It looks like a bouquet of white clover. Neatly tied together with the stems. ...Is that guy really an evil spirit? He clearly meant this as a present."),
     meaning: t("シロツメクサの花言葉：「幸福」「約束」「私を思って」", "Language of flowers for white clover: \"Happiness\", \"Promise\", \"Think of me\""),
   },
   teru: {

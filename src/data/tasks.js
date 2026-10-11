@@ -9,8 +9,8 @@ const DAY_TASKS = [
 ];
 
 const NIGHT_TASKS = [
-  { label: t("机を調べよう", "Check the desk"), done: () => session.photo },
-  { label: t("金庫に写真をしまおう", "Put the photo in the safe"), done: () => session.safeDone },
+  { label: t("デスクを調べよう", "Check the desk"), done: () => session.photo },
+  { label: t("デスクの下の金庫に写真をしまおう", "Put the photo in the safe"), done: () => session.safeDone },
 ];
 
 export const getTasks = () => (session.night ? NIGHT_TASKS : DAY_TASKS);

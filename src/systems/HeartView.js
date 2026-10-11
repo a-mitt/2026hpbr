@@ -183,7 +183,7 @@ export class HeartView {
   showCaption(phase) {
     const lines = {
       left: t(
-        "霊幻新隆は照れすぎて、こやを置いてその場を去ってしまいました",
+        "霊幻新隆は照れすぎて、こやを置いてその場を去ってしまいました。",
         "Reigen Arataka was so embarrassed that he left Koya behind and walked away.",
       ),
       takashi: t(
@@ -191,7 +191,7 @@ export class HeartView {
         "Yo, thanks for celebrating me so much.\n(* This is a copy of the original art.)",
       ),
       bath: t(
-        "何だ？お前まだ遊んでたのか？暇なんだな",
+        "何だ？お前まだ遊んでたのか？暇なんだな。",
         "What? You're still playing? You must have nothing better to do.",
       ),
     };
