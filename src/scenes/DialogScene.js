@@ -35,6 +35,8 @@ const PLAYER_NAME = "霊幻";
 // 物を調べるときの絵：左〜真ん中（会話枠の上）に大きく出す
 // 小さい絵が大きくなりすぎないよう、物ごとの拡大の上限
 const OBJECT_PICTURE_MAX_SCALE = { gamingtie: 3.4 };
+// 絵だけ指定されたもの（たこ焼きなど）の大きさの上限
+const SMALL_PICTURE_AREA = { maxW: 220, maxH: 150 };
 const OBJECT_PICTURE_AREA = { x: 330, y: 190, maxW: 520, maxH: 280, maxScale: 5 };
 
 // 禁則処理：行の先頭に来てはいけない文字は前の行の終わりにぶら下げ、行末に来てはいけない文字は次の行へ送る
@@ -176,7 +178,8 @@ export class DialogScene extends Phaser.Scene {
     }
     const area = OBJECT_PICTURE_AREA;
     const picture = this.add.image(area.x, area.y, key).setDepth(DEPTH_STAND);
-    picture.setScale(Math.min(area.maxW / picture.width, area.maxH / picture.height, OBJECT_PICTURE_MAX_SCALE[objectId] ?? area.maxScale));
+    const fit = pictureKey ? SMALL_PICTURE_AREA : area;
+    picture.setScale(Math.min(fit.maxW / picture.width, fit.maxH / picture.height, OBJECT_PICTURE_MAX_SCALE[objectId] ?? area.maxScale));
     if (objectId === "gamingtie") {
       const keys = GAMING_TIE.files.map((file) => file.key).filter((tieKey) => this.textures.exists(tieKey));
       let index = 0;
