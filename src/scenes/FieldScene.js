@@ -593,11 +593,11 @@ export class FieldScene extends Phaser.Scene {
     this.sayLines(thinkLines(object.text), () => {
       save.foundObject(objectId);
       after?.();
-    });
+    }, objectId);
   }
 
-  // 霊幻の地の文を出す（終わったら onFinish）
-  sayLines(lines, onFinish = null) {
+  // 霊幻の地の文を出す（終わったら onFinish）。objectId＝調べた物（その絵を真ん中に出す）
+  sayLines(lines, onFinish = null, objectId = null) {
     this.cursorManager.reset();
     this.virtualStick.reset();
     this.launchOverlay("DialogScene", {
@@ -605,6 +605,7 @@ export class FieldScene extends Phaser.Scene {
       lines,
       dialogKey: null,
       onFinish,
+      objectId,
     });
   }
 

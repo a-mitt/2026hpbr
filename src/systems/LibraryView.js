@@ -3,7 +3,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { GIFT_INFO, dialogues, ekuboGiftLines } from "../data/dialogues.js";
 import { npcs } from "../data/npcs.js";
 import { GAMING_TIE } from "../data/mapLayout.js";
-import { OBJECTS, SECRETS } from "../data/objects.js";
+import { OBJECTS, SECRETS, objectPictureKey } from "../data/objects.js";
+import { collectionHint, dialogueHint, giftHint, objectHint, secretHint } from "../data/hints.js";
 import { createButton } from "../systems/Button.js";
 import { drawChibi } from "../systems/chibi.js";
 import { save } from "../systems/save.js";
@@ -24,8 +25,6 @@ const CHARA_TEXTURES = {
 const KOYA_SCALE = 0.36;
 const KOYA_WAG_MS = 220;
 const HEART_POOL_SIZE = 14;
-// オブジェクトの詳細に出す絵。マップで使っている絵があるものはそれを使う（無いものは object_{id}。金庫は絵なし）
-const OBJECT_PICTURES = { giftpile: "present", gamingtie: "tie_red" };
 // 絵を説明文の下の真ん中に大きく出すもの（無いものは右側に出す）
 const OBJECT_PICTURE_CENTER = { gamingtie: { x: 480, y: 350, maxW: 300, maxH: 190, maxScale: 5 } };
 // ミニこやの位置（セリフの「▶」ボタンの右）と、触れる範囲
@@ -269,7 +268,7 @@ export class LibraryView {
   }
 
   // ---- 共通部品 ----
-  card(index, { title, sub = "", locked, icon, onClick }) {
+  card(index, { title, sub = "", locked, icon, onClick, hint = "" }) {
     const col = index % CARD.cols;
     const row = Math.floor(index / CARD.cols);
     const x = CARD.x + col * (CARD.w + CARD.gap);
@@ -289,7 +288,19 @@ export class LibraryView {
     if (!locked && onClick) {
       rect.setInteractive();
       this.cursorManager.bind(rect, "button", onClick);
+    } else if (locked && hint) {
+      // まだ解放されていないときは、押すとヒントが見られる
+      rect.setInteractive();
+      this.cursorManager.bind(rect, "button", () => this.openDetail(() => this.renderHint(hint)));
     }
+  }
+
+  // 未解放の項目のヒント
+  renderHint(text) {
+    this.body.add([
+      this.addText(60, 136, t("ヒント", "Hint"), 30),
+      this.addText(60, 200, text, 20, { lineSpacing: 8, wordWrap: { width: 840, useAdvancedWrap: true } }),
+    ]);
   }
 
   // 詳細ページ。render が本文を作る。「戻る」で一覧に戻る
@@ -329,6 +340,7 @@ export class LibraryView {
         sub: locked ? "" : t(`${npc.name}から`, `From ${displayName(npc.name)}`),
         locked,
         icon: (x, y) => this.giftImage(npc.id, x, y + 4, 112, 76, locked, true),
+        hint: giftHint(npc.id),
         onClick: () => this.openDetail(() => {
           this.body.add([
             this.giftImage(npc.id, 730, 290, 300, 260, false),
@@ -418,19 +430,24 @@ export class LibraryView {
       const button = createButton(this.scene, 42 + 80, y + 20, 160, 38, locked ? UNKNOWN_LABEL : displayName(npc.name), 18);
       const selected = npc.id === this.dialogNpcId;
       button.setAlpha(locked ? 0.4 : (selected ? 1 : 0.7));
-      if (!locked) {
-        this.cursorManager.bind(button, "button", () => {
-          this.dialogNpcId = npc.id;
-          this.dialogPage = 0;
-          this.render();
-        });
-      }
+      // まだ読んでいない人も選べる（右にヒントが出る）
+      this.cursorManager.bind(button, "button", () => {
+        this.dialogNpcId = npc.id;
+        this.dialogPage = 0;
+        this.render();
+      });
       this.body.add(button);
     });
 
     const pages = this.paginate(this.seenLines(this.dialogNpcId));
     if (pages.length === 0) {
-      this.body.add(this.addText(250, CARD.y + 4, t("話しかけると、ここにセリフが残ります。", "Talk to someone and their lines will be kept here."), 18, { color: CSS_COLORS.peach }));
+      this.body.add(this.addText(250, CARD.y + 4, `${t("話しかけると、ここにセリフが残ります。", "Talk to someone and their lines will be kept here.")}
+
+${t("ヒント", "Hint")}：${dialogueHint(this.dialogNpcId)}`, 18, {
+        color: CSS_COLORS.peach,
+        lineSpacing: 6,
+        wordWrap: { width: 660, useAdvancedWrap: true },
+      }));
       return;
     }
     this.dialogPage = Phaser.Math.Clamp(this.dialogPage, 0, pages.length - 1);
@@ -470,9 +487,10 @@ export class LibraryView {
         title: locked ? UNKNOWN_LABEL : object.name,
         locked,
         icon: this.markIcon(locked),
+        hint: objectHint(object.id),
         onClick: () => this.openDetail(() => {
           // 絵があるときは右に出して、説明文は左の細い幅にする
-          const key = OBJECT_PICTURES[object.id] ?? `object_${object.id}`;
+          const key = objectPictureKey(object.id);
           const hasPicture = this.scene.textures.exists(key);
           const center = OBJECT_PICTURE_CENTER[object.id];
           this.body.add([
@@ -524,6 +542,7 @@ export class LibraryView {
         title: locked ? UNKNOWN_LABEL : displayName(npc.name),
         locked,
         icon: (x, y) => drawChibi(this.scene, x, y, CHARA_TEXTURES[npc.id], { locked, scale: 0.42 }),
+        hint: collectionHint(npc.id),
         onClick: () => this.openDetail(() => {
           const info = GIFT_INFO[npc.id];
           this.body.add([
@@ -545,6 +564,7 @@ export class LibraryView {
         title: locked ? UNKNOWN_LABEL : secret.name,
         locked,
         icon: this.markIcon(locked, "★"),
+        hint: secretHint(secret.id),
         onClick: () => this.openDetail(() => this.renderSecretDetail(secret)),
       });
     });

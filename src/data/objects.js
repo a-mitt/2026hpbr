@@ -1,5 +1,9 @@
 import { t } from "../systems/i18n.js";
 
+// 調べたときに出す絵。マップで使っている絵があるものはそれを使う（無いものは object_{id}。金庫は絵なし）
+export const OBJECT_PICTURES = { giftpile: "present", gamingtie: "tie_red" };
+export const objectPictureKey = (id) => OBJECT_PICTURES[id] ?? `object_${id}`;
+
 // 調べられるもの（ライブラリの「オブジェクト」に載る）。text＝調べたときの地の文
 export const OBJECTS = [
   {
