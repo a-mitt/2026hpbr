@@ -33,6 +33,8 @@ const DEPTH_STAND = -2;
 const DEPTH_STAND_SPEAKING = -1;
 const PLAYER_NAME = "霊幻";
 // 物を調べるときの絵：左〜真ん中（会話枠の上）に大きく出す
+// 小さい絵が大きくなりすぎないよう、物ごとの拡大の上限
+const OBJECT_PICTURE_MAX_SCALE = { gamingtie: 3.4 };
 const OBJECT_PICTURE_AREA = { x: 330, y: 190, maxW: 520, maxH: 280, maxScale: 5 };
 
 // 禁則処理：行の先頭に来てはいけない文字は前の行の終わりにぶら下げ、行末に来てはいけない文字は次の行へ送る
@@ -77,14 +79,14 @@ export class DialogScene extends Phaser.Scene {
     super("DialogScene");
   }
 
-  create({ npc, lines, dialogKey, onFinish, gift = null, portraits = {}, objectId = null }) {
+  create({ npc, lines, dialogKey, onFinish, gift = null, portraits = {}, objectId = null, pictureKey = null }) {
     this.onFinish = onFinish;
     this.portraitOverrides = portraits;
 
     // 立ち絵が見やすいよう、マップ全体を少し暗くする
     // 押せる物にしておくと、下にある画面のボタンに押した操作が届かない
     this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM).setInteractive();
-    const picture = objectId ? this.showObjectPicture(objectId) : null;
+    const picture = objectId || pictureKey ? this.showObjectPicture(objectId, pictureKey) : null;
     this.createStands(npc, picture !== null);
 
     this.add.rectangle(GAME_WIDTH / 2, BOX_TOP + BOX_HEIGHT / 2, GAME_WIDTH, BOX_HEIGHT, COLORS.bgDark, 0.74)
@@ -160,21 +162,21 @@ export class DialogScene extends Phaser.Scene {
     this.stands = [];
     // 物の絵があるときは、霊幻は右側（相手と話すときと同じ位置）
     const alone = npc.name === PLAYER_NAME && !withPicture;
-    if (!alone) {
+    if (!alone && npc.name !== PLAYER_NAME) {
       this.addStand(npc.name, STAND_LEFT_X);
     }
     this.addStand(PLAYER_NAME, alone ? GAME_WIDTH / 2 : STAND_RIGHT_X);
   }
 
   // 調べた物の絵（あれば）を真ん中に出す。ゲーミングネクタイは色が変わり続ける
-  showObjectPicture(objectId) {
-    const key = objectPictureKey(objectId);
+  showObjectPicture(objectId, pictureKey = null) {
+    const key = pictureKey ?? objectPictureKey(objectId);
     if (!this.textures.exists(key)) {
       return null;
     }
     const area = OBJECT_PICTURE_AREA;
     const picture = this.add.image(area.x, area.y, key).setDepth(DEPTH_STAND);
-    picture.setScale(Math.min(area.maxW / picture.width, area.maxH / picture.height, area.maxScale));
+    picture.setScale(Math.min(area.maxW / picture.width, area.maxH / picture.height, OBJECT_PICTURE_MAX_SCALE[objectId] ?? area.maxScale));
     if (objectId === "gamingtie") {
       const keys = GAMING_TIE.files.map((file) => file.key).filter((tieKey) => this.textures.exists(tieKey));
       let index = 0;

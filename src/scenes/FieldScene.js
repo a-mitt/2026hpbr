@@ -597,7 +597,7 @@ export class FieldScene extends Phaser.Scene {
   }
 
   // 霊幻の地の文を出す（終わったら onFinish）。objectId＝調べた物（その絵を真ん中に出す）
-  sayLines(lines, onFinish = null, objectId = null) {
+  sayLines(lines, onFinish = null, objectId = null, pictureKey = null) {
     this.cursorManager.reset();
     this.virtualStick.reset();
     this.launchOverlay("DialogScene", {
@@ -606,6 +606,7 @@ export class FieldScene extends Phaser.Scene {
       dialogKey: null,
       onFinish,
       objectId,
+      pictureKey,
     });
   }
 
@@ -709,7 +710,7 @@ export class FieldScene extends Phaser.Scene {
         enabled: () => this.ekuboState() === 3 && !session.night,
         seen: () => Boolean(save.flag("takoyakiSeen")),
         // たこ焼きの中身（シロツメクサ）は、ライブラリのプレゼントの文章と同じ
-        use: () => this.sayLines(thinkLines(GIFT_INFO.ekubo.episode), () => save.setFlag("takoyakiSeen")),
+        use: () => this.sayLines(thinkLines(GIFT_INFO.ekubo.episode), () => save.setFlag("takoyakiSeen"), null, "gift_ekubo"),
       },
     ].map((spot) => ({ ...SPOTS[spot.key], ...spot }));
 

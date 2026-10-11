@@ -39,9 +39,9 @@ export const objectHint = (id) => OBJECT_HINTS[id] ?? t("マップのいろい�
 
 const SECRET_HINTS = {
   happy_picture: t("ろうそくに火をつけて、お祝いの画面まで進んでみよう。", "Light the candles and go through to the celebration screen."),
-  koya: t("右上のハートの画面で、お祝いをたくさん繰り返してみよう。", "Repeat the celebrations many times on the heart screen at the top right."),
-  takashi: t("こやが居なくなったあとも、ハートの画面でお祝いを続けてみよう。", "Keep celebrating on the heart screen even after Koya is gone."),
-  takashi_bath: t("あの人が来たあとも、ハートの画面でお祝いを続けてみよう。", "Keep celebrating on the heart screen even after that person shows up."),
+  koya: t("右上のハート欄で、お祝いをたくさん繰り返してみよう。", "Repeat the celebrations many times on the heart screen at the top right."),
+  takashi: t("こやが居なくなったあとも、ハート欄でお祝いを続けてみよう。", "Keep celebrating on the heart screen even after Koya is gone."),
+  takashi_bath: t("あの人が来たあとも、ハート欄でお祝いを続けてみよう。", "Keep celebrating on the heart screen even after that person shows up."),
   true_end: t("みんなと話してプレゼントを集めたあと、そのまま夜まで残ってみよう。", "After talking to everyone and collecting presents, stay until night."),
   normal_end: t("プレゼントを何かもらってから、階段の扉で「帰る」を選ぼう。", "Receive at least one present, then choose to leave at the stairs door."),
   bad_end: t("誰からもプレゼントをもらわずに、階段の扉で「帰る」を選ぼう。", "Without receiving any present, choose to leave at the stairs door."),

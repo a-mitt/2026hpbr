@@ -29,7 +29,7 @@ export class HudScene extends Phaser.Scene {
 
   // 始めの10秒だけ、操作説明の場所を知らせる
   showHowToHint() {
-    const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 24, t("操作説明は、右上の設定（歯車）から開けます", "You can see how to play from Settings (gear icon) at the top right"), {
+    const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 90, t("操作説明は、右上の設定（歯車）から開けます", "You can see how to play from Settings (gear icon) at the top right"), {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
       fontSize: "18px",
@@ -355,7 +355,7 @@ export class HudScene extends Phaser.Scene {
     };
     addResetButton(
       t("セリフ・エンディングをリセット", "Reset dialogue & endings"),
-      t("もう一度押すと実行（ハートは残る）", "Press again (hearts kept)"),
+      t("もう一度押すと実行（お祝いした記録は残る）", "Press again (celebration records kept)"),
       () => save.resetRun(),
     );
     addResetButton(

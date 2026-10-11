@@ -58,7 +58,7 @@ export class Npc extends Phaser.GameObjects.Container {
     this.sprite = sprite;
     this.label = parts[1];
     this.frames = frames;
-    this.setDepth(npcData.y + FOOT_OFFSET);
+    this.setDepth(npcData.y + FOOT_OFFSET + (npcData.depthBonus ?? 0));
     scene.add.existing(this);
     scene.cursorManager.bind(this, "talk", () => {
       if (this.talkAvailable) {
