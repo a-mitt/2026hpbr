@@ -212,10 +212,10 @@ export class FieldScene extends Phaser.Scene {
     this.exitDoorZone = this.add.zone(exit.x, exit.y, exit.w, exit.h).setOrigin(0).setInteractive();
     this.cursorManager.bind(this.exitDoorZone, "talk", () => this.tryOpenExitPrompt(true));
     this.exitHint = this.add.text(exit.x + 22, exit.y + 18, "!", {
-      color: "#ffe27a",
+      color: "#ff4a4a", // オブジェクトは赤（キャラの黄色と見分ける）
       fontFamily: FONTS.body,
       fontSize: "34px",
-      stroke: "#26343a",
+      stroke: "#4a0f0f",
       strokeThickness: 5,
       resolution: 3,
     }).setOrigin(0.5).setDepth(80000).setVisible(false).setInteractive();
@@ -387,7 +387,8 @@ export class FieldScene extends Phaser.Scene {
     this.updateSpotHint();
     this.updateHoverCursors();
     // 近くに話せる人や調べられる物があるときは、自分のクリック（たすき）を止める（そちらを押せなくなるため）
-    if (this.player.input) {
+    // たすきを調べ済みなら、自分のクリックは二度と有効にしない
+    if (this.player.input && !save.hasObject("sash")) {
       this.player.input.enabled = !(this.closestNpc || this.nearestSpot() || this.nearExitDoor());
     }
     this.exitHint.setVisible(this.nearExitDoor());
@@ -681,7 +682,7 @@ export class FieldScene extends Phaser.Scene {
     }
     makeCharacterInteractive(this.player);
     this.cursorManager.bind(this.player, "inspect", () => {
-      if (this.inputLocked) {
+      if (this.inputLocked || save.hasObject("sash")) {
         return;
       }
       this.player.disableInteractive();
@@ -729,10 +730,10 @@ export class FieldScene extends Phaser.Scene {
       });
     }
     this.spotHint = this.add.text(0, 0, "!", {
-      color: "#ffe27a",
+      color: "#ff4a4a", // オブジェクトは赤（キャラの黄色と見分ける）
       fontFamily: FONTS.body,
       fontSize: "34px",
-      stroke: "#26343a",
+      stroke: "#4a0f0f",
       strokeThickness: 5,
       resolution: 3,
     }).setOrigin(0.5).setDepth(80000).setVisible(false).setInteractive();
