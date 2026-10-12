@@ -1,22 +1,19 @@
-import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { createButton } from "./Button.js";
 import { save } from "./save.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 import { t } from "./i18n.js";
+import { CX, PICTURE_Y, heartEffectMethods } from "./heartEffects.js";
 
-const CX = GAME_WIDTH / 2;
 const LEAVE_EACH = 100; // 4つのお祝いが、それぞれ100回（合計400回）になると、れーあらはこやを置いて帰る
 const LIMIT = 1000; // 帰ったあと、4つとも1000回で、原作の隆が出てくる
 const LIMIT_TAKASHI = 4000; // 隆が出たあと、4つとも4000回で、風呂上がりの隆になる
 const TEXT_RESOLUTION = 2;
 const MAX_EFFECTS = 120; // 画面に同時に出しておく演出の数の上限
 // れーあらの絵（中心）。大きさは PICTURE_MAX の中に収める
-const PICTURE_Y = 236;
 const PICTURE_MAX = { width: 600, height: 332 };
 // 絵の下（ボタンの上）に言葉を出す場所
 const CAPTION_Y = 427;
-const FACE_Y = PICTURE_Y;
 // 合計回数で絵が変わる節目（絵の名前は reia_0／reia_25／reia_50／reia_75。75のあとは、帰るまでそのまま）
 const STAGES = [75, 50, 25, 0];
 
@@ -26,7 +23,6 @@ const ACTIONS = [
   { id: "say", label: t("おめでとうと伝える", "Say congratulations") },
   { id: "balloon", label: t("風船を飛ばす", "Release balloons") },
 ];
-const CONFETTI_COLORS = [0xff6b6b, 0xffd93d, 0x6bcB77, 0x4d96ff, 0xf49ac1, 0xb388eb];
 
 // ハート画面（全画面）。れーあらに、4つのお祝いを送る。
 // 4つのお祝いの回数の合計で、れーあらの絵が変わる（25／50／75）。4つとも100回（合計400回）で「こや」を置いて帰る（こやはライブラリにいる）。
@@ -75,32 +71,6 @@ export class HeartView {
     });
     this.container.add([this.stage, this.effects]);
     this.createConfettiRain();
-  }
-
-  // 一枚絵の画面なので、ぱらぱらと紙吹雪を降らせる（開いている間だけ）
-  createConfettiRain() {
-    const scene = this.scene;
-    if (!scene.textures.exists("confetti-piece")) {
-      const graphics = scene.make.graphics({ x: 0, y: 0, add: false });
-      graphics.fillStyle(0xffffff, 1);
-      graphics.fillRect(0, 0, 9, 14);
-      graphics.generateTexture("confetti-piece", 9, 14);
-      graphics.destroy();
-    }
-    this.rain = scene.add.particles(0, -20, "confetti-piece", {
-      x: { min: 0, max: GAME_WIDTH },
-      y: { min: -30, max: -10 },
-      lifespan: 6500,
-      frequency: 90,
-      quantity: 2,
-      speedX: { min: -40, max: 40 },
-      speedY: { min: 80, max: 200 },
-      gravityY: 55,
-      rotate: { min: 0, max: 360 },
-      tint: CONFETTI_COLORS,
-      scale: { start: 1, end: 0.4 },
-      emitting: false,
-    }).setDepth(5).setVisible(false);
   }
 
   setVisible(isVisible) {
@@ -246,52 +216,7 @@ export class HeartView {
     this.refresh();
   }
 
-  // ---- 演出（仮の絵） ----
-  track(object, tweenConfig) {
-    this.effects.add(object);
-    this.scene.tweens.add({ ...tweenConfig, targets: object, onComplete: () => object.destroy() });
-  }
-
-  spawnEffect(id) {
-    const scene = this.scene;
-    if (id === "clap") {
-      for (let i = 0; i < 5; i += 1) {
-        const hand = this.addText(CX + Phaser.Math.Between(-150, 150), FACE_Y + 90, "👏", 34).setOrigin(0.5);
-        this.track(hand, { y: FACE_Y - 70 - Phaser.Math.Between(0, 40), alpha: 0, duration: 800, delay: i * 60 });
-      }
-    } else if (id === "cracker") {
-      for (let i = 0; i < 36; i += 1) {
-        const fromLeft = i % 2 === 0;
-        const piece = scene.add.rectangle(
-          fromLeft ? 40 : GAME_WIDTH - 40,
-          GAME_HEIGHT - 120,
-          Phaser.Math.Between(6, 11),
-          Phaser.Math.Between(10, 16),
-          Phaser.Utils.Array.GetRandom(CONFETTI_COLORS),
-        ).setAngle(Phaser.Math.Between(0, 180));
-        const targetX = (fromLeft ? 1 : -1) * Phaser.Math.Between(80, 420) + piece.x;
-        this.track(piece, {
-          x: targetX,
-          y: Phaser.Math.Between(60, 260),
-          angle: piece.angle + Phaser.Math.Between(-360, 360),
-          alpha: 0,
-          duration: Phaser.Math.Between(900, 1400),
-          ease: "Cubic.easeOut",
-        });
-      }
-    } else if (id === "say") {
-      const shout = this.addText(CX + Phaser.Math.Between(-60, 60), FACE_Y + 100, t("おめでとう！", "Happy birthday!"), 30, {
-        color: CSS_COLORS.orangeLight,
-      }).setOrigin(0.5);
-      this.track(shout, { y: FACE_Y - 110, alpha: 0, duration: 1000, ease: "Sine.easeOut" });
-    } else {
-      const color = Phaser.Utils.Array.GetRandom(CONFETTI_COLORS);
-      const x = Phaser.Math.Between(80, GAME_WIDTH - 80);
-      const balloon = scene.add.container(x, GAME_HEIGHT - 100, [
-        scene.add.ellipse(0, 0, 38, 48, color).setStrokeStyle(3, 0x5a3320),
-        scene.add.line(0, 0, 0, 24, 4, 70, 0x5a3320).setOrigin(0).setLineWidth(2),
-      ]);
-      this.track(balloon, { y: -80, x: x + Phaser.Math.Between(-60, 60), duration: 2200, ease: "Sine.easeIn" });
-    }
-  }
 }
+
+// 演出は heartEffects.js に分けてある。ここで HeartView のメソッドとして混ぜ込む
+Object.assign(HeartView.prototype, heartEffectMethods);
