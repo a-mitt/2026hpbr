@@ -23,8 +23,12 @@ export class HudScene extends Phaser.Scene {
     super("HudScene");
   }
 
-  // 始めの10秒だけ、操作説明の場所を知らせる
+  // 始めの10秒だけ、操作説明の場所を知らせる（最初の一回だけ。2回目以降は出さない）
   showHowToHint() {
+    if (save.flag("howToHintShown")) {
+      return;
+    }
+    save.setFlag("howToHintShown");
     const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 90, t("操作説明は、右上の設定（歯車）から開けます", "You can see how to play from Settings (gear icon) at the top right"), {
       color: CSS_COLORS.cream,
       fontFamily: FONTS.ui,
