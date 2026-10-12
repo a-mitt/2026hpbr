@@ -31,8 +31,8 @@
 | 用途 | フォント | 場所 |
 |---|---|---|
 | 1枚目の**注意書き本文・クレジット** | IBM Plex Sans JP | npm `@fontsource/ibm-plex-sans-jp`（OFL） |
-| 上記以外の日本語すべて（タイトル・見出し・ボタン・ろうそく画面・会話・名前・マップ上の文字・設定・ライブラリ） | **無心**（MODI工房） | `public/assets/fonts/mushin.otf` |
-| **HAPPY BIRTHDAY！** のみ | 851マカポップ | `public/assets/fonts/851makapop.ttf` |
+| 上記以外の日本語すべて（タイトル・見出し・ボタン・ろうそく画面・会話・名前・マップ上の文字・設定・ライブラリ） | **無心**（MODI工房） | `public/assets/fonts/mushin.woff2` |
+| **HAPPY BIRTHDAY！** のみ | 851マカポップ | `public/assets/fonts/851makapop.woff2` |
 
 - `src/theme.js` の `FONTS`：`ui`＝`body`＝無心、`intro`＝IBM、`title`＝851、`name`＝無心（霊幻新隆の文字だけ少し大きくする用）。`@font-face` は `src/style.css`、読み込み待ちは `src/main.js`（最大1.5秒）。
 - **不採用**：ふい字、夜もすがら（漢字が少なく欠ける）、反逆明徴、cp_period。コードにもファイルにも残していない。
