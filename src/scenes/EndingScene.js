@@ -12,12 +12,23 @@ const CX = GAME_WIDTH / 2;
 const ENDINGS = {
   true: {
     secret: "true_end",
-    pageFace: null, // 文章のページがないので使わない
+    pageFace: "smile", // 文章のあいだの顔
     finalFace: "happyend",
     label: "TRUE END",
     labelColor: "#ffe27a",
-    pages: [],
-    final: [t("霊幻新隆を幸せな誕生日にすることができました。", "You made Reigen Arataka's birthday a happy one."), t("おめでとう！", "Congratulations!")],
+    pages: [
+      t("一人で帰っているのに、一人じゃないみたいだ。胸が温かい。", "I'm walking home alone, yet it feels like I'm not. My heart is warm."),
+      t("ふと、周りに人がいないことを確認して、\nずっと力を入れていた目元から力を抜く。", "I glance around to make sure no one is nearby,\nand finally relax my eyes, tense for so long."),
+      t("頬を伝う温かい雫は、決して哀しさから出たものではない。", "The warm drops running down my cheeks are never from sadness."),
+      t("どうか、幸せな日々がこれからも続きますように。", "I hope these happy days will go on and on."),
+      t("ろうそくの火を吹き消す時に祈った願いを、\n神様は叶えてくれるだろうか。", "Will the gods grant the wish I made\nwhen I blew out the candles?"),
+      t("叶えてくれるといいな。\n今日はなんだか、一人でも寂しくない。", "I hope they do.\nSomehow, I don't feel lonely today, even by myself."),
+    ],
+    final: [
+      t("全員のプレゼントをもらうことができました。", "You received a present from everyone."),
+      t("あなたのおかげで霊幻新隆は\n素敵な誕生日を過ごすことができたようです。", "Thanks to you, Reigen Arataka seems to have\nspent a wonderful birthday."),
+      t("おめでとうございます。", "Congratulations."),
+    ],
   },
   // 誰かからプレゼントをもらって帰ったとき
   normal: {
@@ -30,7 +41,7 @@ const ENDINGS = {
       t("みんなに祝ってもらって、帰り道を歩く。", "He walks home after being celebrated by everyone."),
       t("もらったプレゼントを、そっと思い浮かべる。", "He quietly thinks of the presents he received."),
     ],
-    final: [t("今日はいい誕生日だった。", "It was a good birthday."), t("また来年も、もしかしたら……。", "Maybe again next year, too......")],
+    final: [t("今年はいい誕生日だった。", "It was a good birthday this year."), t("また来年も、もしかしたら……。", "Maybe again next year, too......")],
   },
   bad: {
     secret: "bad_end",
@@ -59,7 +70,7 @@ export class EndingScene extends Phaser.Scene {
   preload() {
     // 霊幻の立ち絵（ここから直接始めたときのために、無ければ読み込む）
     this.load.setPath(`${import.meta.env.BASE_URL}assets/stand/`);
-    for (const face of ["happyend", "normalend", "alone", "alonebad"]) {
+    for (const face of ["happyend", "normalend", "alone", "alonebad", "smile"]) {
       if (!this.textures.exists(`stand_reigen_${face}`)) {
         this.load.image(`stand_reigen_${face}`, `reigen_${face}.png`);
       }
@@ -90,6 +101,7 @@ export class EndingScene extends Phaser.Scene {
       fontSize: "28px",
       align: "center",
       lineSpacing: 12,
+      wordWrap: { width: 640, useAdvancedWrap: true },
       resolution: 2,
     }).setOrigin(0.5).setAlpha(0);
 
