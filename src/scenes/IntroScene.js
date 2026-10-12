@@ -74,7 +74,7 @@ export class IntroScene extends Phaser.Scene {
     };
     this.add.text(GAME_WIDTH - MARGIN, 500, t("by製作者:裏世界(旧:理の目) X:@NLisei_kotowari", "by Urasekai (formerly Kotowari no Me)  X:@NLisei_kotowari"), creditStyle)
       .setOrigin(1, 1).setAlpha(0.85);
-    this.add.text(GAME_WIDTH - MARGIN, 518, t("ゲームコード:AI使用、絵:裏世界、Ver1.0-2026.10.10", "Game code: AI-assisted, Art: Urasekai, Ver1.0-2026.10.10"), creditStyle)
+    this.add.text(GAME_WIDTH - MARGIN, 518, t("ゲームコード:AI使用、絵:裏世界、Ver1.1-2026.10.12", "Game code: AI-assisted, Art: Urasekai, Ver1.1-2026.10.12"), creditStyle)
       .setOrigin(1, 1).setAlpha(0.85);
 
     this.cursorManager.bind(startButton, "button", () => {
