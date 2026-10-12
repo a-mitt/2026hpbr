@@ -3,7 +3,8 @@ import { CHARACTER_SCALE } from "../constants.js";
 
 // キャラ絵は 140×200 で、足元が下端。コンテナは CHARACTER_SCALE 倍で表示されるので、
 // 絵はその分を打ち消して「画面で 140×200 の ART_SCALE 倍」に見せる
-export const ART_SCALE = 0.9;
+// CHARACTER_SCALE 1.7 のときに 0.9（元の大きさ）。CHARACTER_SCALE を変えると、キャラの見た目の大きさも比例して変わる
+export const ART_SCALE = 0.9 * CHARACTER_SCALE / 1.7;
 const ART_WIDTH = 140;
 const ART_HEIGHT = 200;
 const LOCAL_SCALE = ART_SCALE / CHARACTER_SCALE;

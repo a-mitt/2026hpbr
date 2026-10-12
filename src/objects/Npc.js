@@ -36,14 +36,15 @@ export class Npc extends Phaser.GameObjects.Container {
         resolution: TEXT_RESOLUTION,
         // コンテナの拡大を打ち消して、文字は等倍のままくっきり描く
       }).setOrigin(0.5, 0).setScale(1 / CHARACTER_SCALE),
-      scene.add.text(0, headY - 8, "!", {
+      scene.add.text(0, headY + 12, "!", {
         color: "#ffe27a",
         fontFamily: FONTS.body,
         fontSize: "30px",
         stroke: "#26343a",
         strokeThickness: 4,
         resolution: TEXT_RESOLUTION,
-      }).setOrigin(0.5).setVisible(false),
+        // 元の大きさ（CHARACTER_SCALE 1.7 のとき）のまま。キャラを大きくしても「!」は大きくしない
+      }).setOrigin(0.5).setScale(1.2 / CHARACTER_SCALE).setVisible(false),
     ];
 
     super(scene, npcData.x, npcData.y, parts);
@@ -95,10 +96,10 @@ export class Npc extends Phaser.GameObjects.Container {
 
   startIndicatorTween(headY) {
     this.indicatorTween?.remove();
-    this.talkIndicator.setY(headY - 8);
+    this.talkIndicator.setY(headY + 12);
     this.indicatorTween = this.scene.tweens.add({
       targets: this.talkIndicator,
-      y: headY - 16,
+      y: headY + 4,
       duration: 360,
       yoyo: true,
       repeat: -1,

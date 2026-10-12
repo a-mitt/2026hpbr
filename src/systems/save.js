@@ -120,6 +120,17 @@ export const save = {
     commit();
   },
 
+  // 周回し直す用：ハート画面の回数と、そこで解放したこや・隆だけ残して、セリフ・プレゼント・オブジェクト・エンディングなどを消す
+  resetRun() {
+    const heartFlags = Object.fromEntries(
+      ["secret_koya", "secret_takashi", "secret_takashi_bath"]
+        .filter((key) => data.flags[key])
+        .map((key) => [key, true]),
+    );
+    data = { ...emptyData(), counts: data.counts, flags: heartFlags };
+    commit();
+  },
+
   reset() {
     data = emptyData();
     commit();

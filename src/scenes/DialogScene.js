@@ -4,6 +4,9 @@ import { save } from "../systems/save.js";
 import { COLORS, FONTS } from "../theme.js";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { t } from "../systems/i18n.js";
+import { applyKinsoku } from "../systems/kinsoku.js";
+import { DEPTH_DIM, standMethods } from "../systems/dialogStands.js";
+import { blockClicksFor } from "../systems/CursorManager.js";
 
 // 会話枠（画面の下）と本文：幅と行数。これを超える長さは次のページに分ける
 const BOX_HEIGHT = 180;
@@ -12,73 +15,21 @@ const BODY_X = 64;
 const BODY_WIDTH = 830;
 const BODY_FONT_SIZE = 22;
 const BODY_LINES = 3;
-// 立ち絵（枠の上）：左に相手、右に霊幻。しゃべっている方が明るく、もう一方は暗くなる
-const STAND_SCALE = 2.1;
-// 霊幻の立ち絵（400×600、キャラは左右の中心より右にずれて描かれている）
-const PLAYER_STAND_SCALE = 0.92;
-const PLAYER_STAND_ORIGIN_X = 0.59;
-const SPEAKING_SCALE_RATIO = 1.04;
-const playerStandKey = (face) => `stand_reigen_${face}`;
-const STAND_LEFT_X = 250;
-const STAND_RIGHT_X = 700;
-// 立ち絵は会話枠のうしろまで伸ばして、大きく見せる（枠は半透明）
-const STAND_BOTTOM_Y = GAME_HEIGHT + 24;
-const DIM_TINT = 0x3f3f4d;
-// 重なり順：暗くする幕 ＜ 立ち絵 ＜ 会話枠（半透明）。立ち絵は、しゃべっている方も枠の後ろ
-const DEPTH_DIM = -3;
-const DEPTH_STAND = -2;
-const DEPTH_STAND_SPEAKING = -1;
-const PLAYER_NAME = "霊幻";
-
-// 禁則処理：行の先頭に来てはいけない文字は前の行の終わりにぶら下げ、行末に来てはいけない文字は次の行へ送る
-const NO_LINE_START = "、。，．,.！？!?）」』】〕〉》〗)]ー…・：；ぁぃぅぇぉっゃゅょァィゥェォッャュョ々";
-const NO_LINE_END = "（「『【〔〈《〖([";
-
-function applyKinsoku(lines) {
-  const result = lines.map((line) => line);
-  for (let i = 1; i < result.length; i += 1) {
-    while (result[i].length > 0 && NO_LINE_START.includes(result[i][0])) {
-      result[i - 1] += result[i][0];
-      result[i] = result[i].slice(1);
-    }
-    // 「）」だけの行のように空になった行は、なくす
-    if (result[i].length === 0) {
-      result.splice(i, 1);
-      i -= 1;
-      continue;
-    }
-    while (result[i - 1].length > 1 && NO_LINE_END.includes(result[i - 1].slice(-1))) {
-      result[i] = result[i - 1].slice(-1) + result[i];
-      result[i - 1] = result[i - 1].slice(0, -1);
-    }
-  }
-  return result;
-}
-
-// 話者ごとの絵（public/assets/chara/）
-const PORTRAIT_TEXTURES = {
-  霊幻: "chara_reigen_down",
-  トメ: "chara_tome",
-  律: "chara_ritsu",
-  ショウ: "chara_shou",
-  モブ: "chara_mob",
-  エクボ: "chara_ekubo_1",
-  テル: "chara_teru",
-  芹沢: "chara_serizawa",
-};
 
 export class DialogScene extends Phaser.Scene {
   constructor() {
     super("DialogScene");
   }
 
-  create({ npc, lines, dialogKey, onFinish, gift = null, portraits = {} }) {
+  create({ npc, lines, dialogKey, onFinish, gift = null, portraits = {}, objectId = null, pictureKey = null }) {
     this.onFinish = onFinish;
     this.portraitOverrides = portraits;
 
     // 立ち絵が見やすいよう、マップ全体を少し暗くする
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM);
-    this.createStands(npc);
+    // 押せる物にしておくと、下にある画面のボタンに押した操作が届かない
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(DEPTH_DIM).setInteractive();
+    const picture = objectId || pictureKey ? this.showObjectPicture(objectId, pictureKey) : null;
+    this.createStands(npc, picture !== null);
 
     this.add.rectangle(GAME_WIDTH / 2, BOX_TOP + BOX_HEIGHT / 2, GAME_WIDTH, BOX_HEIGHT, COLORS.bgDark, 0.74)
       .setStrokeStyle(2, COLORS.orangeLight, 0.95);
@@ -145,56 +96,6 @@ export class DialogScene extends Phaser.Scene {
       this.dialogManager.start(pages);
     } else {
       this.pendingPages = pages;
-    }
-  }
-
-  // 立ち絵：左に相手、右に霊幻（相手がいない＝霊幻ひとりのときは真ん中）
-  createStands(npc) {
-    this.stands = [];
-    const alone = npc.name === PLAYER_NAME;
-    if (!alone) {
-      this.addStand(npc.name, STAND_LEFT_X);
-    }
-    this.addStand(PLAYER_NAME, alone ? GAME_WIDTH / 2 : STAND_RIGHT_X);
-  }
-
-  addStand(name, x) {
-    // 霊幻は表情つきの立ち絵（stand_reigen_*）。ほかの人はマップの絵を大きくしたもの
-    const isPlayer = name === PLAYER_NAME;
-    const key = isPlayer && this.textures.exists(playerStandKey("normal"))
-      ? playerStandKey("normal")
-      : (this.portraitOverrides[name] ?? PORTRAIT_TEXTURES[name]);
-    if (!key || !this.textures.exists(key)) {
-      return;
-    }
-    const image = this.add.image(x, STAND_BOTTOM_Y, key).setOrigin(isPlayer ? PLAYER_STAND_ORIGIN_X : 0.5, 1)
-      .setDepth(DEPTH_STAND);
-    this.stands.push({ name, image, isPlayer });
-    this.applyStandScale(this.stands[this.stands.length - 1], false);
-  }
-
-  // 立ち絵の大きさ（しゃべっている人は少し大きく）。霊幻の絵は大きさの基準が違う
-  applyStandScale(stand, speaking) {
-    const base = stand.isPlayer ? PLAYER_STAND_SCALE : STAND_SCALE;
-    stand.image.setScale(base * (speaking ? SPEAKING_SCALE_RATIO : 1));
-  }
-
-  // しゃべっている人を明るく、もう一方を暗くする（誰も該当しなければ全員そのまま）。
-  // 霊幻がしゃべるときは、その行の表情（face）の立ち絵にする
-  focusSpeaker(speaker, face = "normal") {
-    for (const stand of this.stands) {
-      const speaking = stand.name === speaker;
-      if (stand.isPlayer && this.textures.exists(playerStandKey(face))) {
-        stand.image.setTexture(playerStandKey(face));
-      }
-      if (speaking) {
-        stand.image.clearTint();
-        stand.image.setDepth(DEPTH_STAND_SPEAKING);
-      } else {
-        stand.image.setTint(DIM_TINT);
-        stand.image.setDepth(DEPTH_STAND);
-      }
-      this.applyStandScale(stand, speaking);
     }
   }
 
@@ -277,8 +178,12 @@ export class DialogScene extends Phaser.Scene {
   }
 
   endDialog() {
+    blockClicksFor();
     this.scene.stop();
     this.scene.resume("FieldScene");
     this.onFinish?.();
   }
 }
+
+// 立ち絵まわりは dialogStands.js に分けてある。ここで DialogScene のメソッドとして混ぜ込む
+Object.assign(DialogScene.prototype, standMethods);

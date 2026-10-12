@@ -27,6 +27,28 @@ export const TERMS_ITEMS = NOTICE_LINES.join("\n")
   .replace(isEnglish ? /\n {2}/g : /\n　/g, isEnglish ? " " : "")
   .split("\n");
 
+// 設定画面の「遊び方」
+export const HOWTO_LINES = t(
+  [
+    "【移動】矢印キー / WASD（スマホは画面のスティック）",
+    "【話す・調べる】近づいて「！」が出たら Space / Enter、またはクリック・タップ",
+    "【ライブラリ】右上のボタンから、集めたセリフ・プレゼント・オブジェクトなどを見返せます",
+    "【ハート欄】右上のボタンから、お祝いの画面を開けます",
+    "【ヒント】いろいろな場所やみんなに、何度か話しかけてみてください",
+    "",
+    "※ 進み具合はブラウザに自動で保存されます",
+  ],
+  [
+    "[Move] Arrow keys / WASD (on-screen stick on phones)",
+    "[Talk / Examine] When \"!\" appears, press Space / Enter, or click / tap",
+    "[Library] Review the lines, presents and objects you found from the top-right button",
+    "[Hearts] Open the celebration screen from the top-right button",
+    "[Hint] Try talking to everyone and checking places more than once",
+    "",
+    "* Your progress is saved automatically in your browser",
+  ],
+);
+
 export const CREDIT_LINES = t(
   [
     "【制作】",

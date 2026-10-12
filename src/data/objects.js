@@ -1,5 +1,9 @@
 import { t } from "../systems/i18n.js";
 
+// 調べたときに出す絵。マップで使っている絵があるものはそれを使う（無いものは object_{id}。金庫は絵なし）
+export const OBJECT_PICTURES = { giftpile: "present", gamingtie: "tie_red" };
+export const objectPictureKey = (id) => OBJECT_PICTURES[id] ?? `object_${id}`;
+
 // 調べられるもの（ライブラリの「オブジェクト」に載る）。text＝調べたときの地の文
 export const OBJECTS = [
   {
@@ -38,7 +42,7 @@ export const OBJECTS = [
     id: "safe",
     name: t("金庫", "Safe"),
     text: t(
-      "デスクの下には金庫がある。だが、みんながいる間は開けられない。",
+      "デスクの下には金庫がある。だが、みんながいる間は開けたくない。",
       "There's a safe under the desk. But I can't open it while everyone's here.",
     ),
   },
@@ -48,8 +52,8 @@ export const OBJECTS = [
 export const SECRETS = [
   { id: "happy_picture", name: t("HAPPY BIRTHDAY！の一枚絵", "HAPPY BIRTHDAY! Illustration") },
   { id: "koya", name: t("こや", "Koya") },
-  { id: "takashi", name: t("原作の隆", "Takashi (Original)") },
-  { id: "takashi_bath", name: t("原作の隆（風呂上がり）", "Takashi (After the Bath)") },
+  { id: "takashi", name: t("原作隆", "Takashi (Original)") },
+  { id: "takashi_bath", name: t("原作隆（風呂上がり）", "Takashi (After the Bath)") },
   { id: "true_end", name: t("トゥルーエンド", "True Ending") },
   { id: "normal_end", name: t("ノーマルエンド", "Normal Ending") },
   { id: "bad_end", name: t("バッドエンド", "Bad Ending") },

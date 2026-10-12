@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../constants.js";
 import { giftCount, hasAllCollections } from "../systems/progress.js";
-import { CursorManager } from "../systems/CursorManager.js";
+import { CursorManager, blockClicksFor } from "../systems/CursorManager.js";
 import { createButton } from "../systems/Button.js";
 import { COLORS, CSS_COLORS, FONTS } from "../theme.js";
 import { t } from "../systems/i18n.js";
@@ -106,6 +106,7 @@ export class ExitPromptScene extends Phaser.Scene {
   }
 
   close() {
+    blockClicksFor();
     this.cursorManager.reset();
     this.scene.stop();
     this.scene.resume("FieldScene");
