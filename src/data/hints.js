@@ -32,7 +32,7 @@ const OBJECT_HINTS = {
   giftpile: t("部屋のすみに、プレゼントが山になっている。近づいて調べてみよう。", "There's a pile of presents in a corner of the room. Get close and check it out."),
   gamingtie: t("奥の部屋に、変わった光り方をするものがある。", "Something in the back room glows in an unusual way."),
   sash: t("自分の体を調べてみよう。そこにも何かあるかも。", "Try examining yourself. There might be something there, too."),
-  planter: t("緑の植物をよく調べてみよう。足元がポイント。モブと被らない場所を調べよう。", "Look closely at the green plant. Check around its base."),
+  planter: t("緑の植物をよく調べてみよう。足元がポイント。モブと被らない場所を調べよう。", "Look closely at the green plant. Check around its base, in a spot where Mob isn't standing."),
   safe: t("デスクのまわりを調べてみよう。下に何かあるみたい。", "Examine around the desk. There seems to be something underneath."),
 };
 export const objectHint = (id) => OBJECT_HINTS[id] ?? t("マップのいろいろな場所を調べてみよう。", "Try examining various places on the map.");
