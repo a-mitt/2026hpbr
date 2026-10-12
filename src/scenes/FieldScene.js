@@ -6,12 +6,12 @@ import {
   afterGiftLines,
   dialogues,
   ekuboAfterLines,
-  ekuboGiftLines,
   ekuboWaitingLines,
   nightDeskLines,
   nightDoorLines,
   nightIntroLines,
   nightSafeNoMemoLines,
+  nightSafeNoPhotoLines,
   nightSafeOpenLines,
   thinkLines,
 } from "../data/dialogues.js";
@@ -23,12 +23,10 @@ import {
   DARK_ALPHA,
   BALLOONS,
   DECORATION,
-  EKUBO_DOOR_POS,
   EXIT_DOOR,
   FURNITURE,
   GAMING_TIE,
   GIFT_PILE,
-  MAP_IMAGES,
   PLAYER_START,
   ROOMS,
   SPOTS,
@@ -42,24 +40,9 @@ import { CursorManager, clicksBlocked } from "../systems/CursorManager.js";
 import { DebugOverlay } from "../systems/DebugOverlay.js";
 import { VirtualStick } from "../systems/VirtualStick.js";
 import { t } from "../systems/i18n.js";
+import { EkuboEvent } from "../systems/EkuboEvent.js";
+import { loadFieldAssets } from "../systems/fieldAssets.js";
 
-const MAP_ASSET_DIR = `${import.meta.env.BASE_URL}assets/map/`;
-const CHARA_ASSET_DIR = `${import.meta.env.BASE_URL}assets/chara/`;
-const GIFT_ASSET_DIR = `${import.meta.env.BASE_URL}assets/gifts/`;
-const STAND_ASSET_DIR = `${import.meta.env.BASE_URL}assets/stand/`;
-const HEART_ASSET_DIR = `${import.meta.env.BASE_URL}assets/heart/`;
-const BIRTHDAY_ASSET_DIR = `${import.meta.env.BASE_URL}assets/birthday/`;
-const KOYA_ASSET_DIR = `${import.meta.env.BASE_URL}assets/koya/`;
-// 暗い階段に立つ守衛のエクボの色味（乗算の幕は使わず、絵に直接かける）
-const GUARD_DIM_TINT = 0x8f8fa8;
-const OBJECT_ASSET_DIR = `${import.meta.env.BASE_URL}assets/objects/`;
-// 霊幻の立ち絵の表情（会話・エンディングで使う）。キーは stand_reigen_表情
-export const REIGEN_FACES = ["normal", "happy", "surprise", "littlesad", "smile", "angry", "alone", "alonebad", "happyend", "normalend"];
-// キャラ絵（public/assets/chara/）。キーは "chara_" + ファイル名
-const CHARA_FILES = [
-  "tome", "ritsu", "shou", "mob", "teru", "serizawa", "ekubo_1", "ekubo_2", "guard_front", "guard_side",
-  "reigen_down", "reigen_up", "reigen_left", "reigen_right",
-];
 const DARK_FADE_MS = 350;
 
 export class FieldScene extends Phaser.Scene {
@@ -73,48 +56,7 @@ export class FieldScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.setPath(MAP_ASSET_DIR);
-    for (const [key, file] of Object.entries(MAP_IMAGES)) {
-      this.load.image(key, file);
-    }
-    for (const furniture of FURNITURE) {
-      this.load.image(furniture.key, furniture.file);
-    }
-    for (const overlay of [DECORATION, GIFT_PILE, ...BALLOONS, ...GAMING_TIE.files]) {
-      this.load.image(overlay.key, overlay.file);
-    }
-    this.load.setPath(CHARA_ASSET_DIR);
-    for (const name of CHARA_FILES) {
-      this.load.image(`chara_${name}`, `${name}.png`);
-    }
-    // ハート画面のれーあら（合計の節目ごと・帰ったあと）と、ライブラリのこや（通常・しっぽ左右）
-    this.load.setPath(HEART_ASSET_DIR);
-    for (const name of ["reia_0", "reia_25", "reia_50", "reia_75", "reia_left", "takashi", "takashi_bath"]) {
-      this.load.image(name, `${name}.png`);
-    }
-    // ライブラリのシークレットで見直す、お祝いの一枚絵
-    this.load.setPath(BIRTHDAY_ASSET_DIR);
-    this.load.image("birthday_picture", "birthday.png");
-    // ライブラリの「オブジェクト」の詳細に出す絵（絵ができたものから追加。名前は objects.js の id）
-    this.load.setPath(OBJECT_ASSET_DIR);
-    for (const id of ["sash", "planter"]) {
-      this.load.image(`object_${id}`, `${id}.png`);
-    }
-    this.load.setPath(KOYA_ASSET_DIR);
-    for (const name of ["idle", "wag_left", "wag_right", "mini_idle", "mini_wag_left", "mini_wag_right"]) {
-      this.load.image(`koya_${name}`, `${name}.png`);
-    }
-    this.load.setPath(STAND_ASSET_DIR);
-    for (const face of REIGEN_FACES) {
-      this.load.image(`stand_reigen_${face}`, `reigen_${face}.png`);
-    }
-    // プレゼントの絵（キーは gift_キャラのid）。会話の前の窓・ライブラリ・マップ上のたこ焼きで使う
-    this.load.setPath(GIFT_ASSET_DIR);
-    for (const npc of npcs) {
-      this.load.image(`gift_${npc.id}`, `${npc.id}.png`);
-      // 小さく表示する用（マップ上・カードの絵）。大きい絵を小さく縮めて出すと、ギザギザになるため
-      this.load.image(`gift_${npc.id}_s`, `${npc.id}_s.png`);
-    }
+    loadFieldAssets(this);
   }
 
   create() {
@@ -124,7 +66,6 @@ export class FieldScene extends Phaser.Scene {
     this.inputLocked = false;
     this.replayNight = false;
     this.overlayOpen = false;
-    this.takoyakiSprite = null; // 前回の（もう消えた）絵を引き継がない
     doorState.toiletOpen = false;
     this.currentRoomId = null;
     this.buildMap();
@@ -136,7 +77,7 @@ export class FieldScene extends Phaser.Scene {
     const startY = Number(query?.get("py")) || PLAYER_START.y;
     this.player = new Player(this, startX, startY);
     this.setupSelfClick();
-    this.setupEkubo();
+    this.ekubo = new EkuboEvent(this);
     this.buildSpots();
     this.events.on(Phaser.Scenes.Events.RESUME, () => {
       this.overlayOpen = false;
@@ -211,14 +152,7 @@ export class FieldScene extends Phaser.Scene {
     const exit = EXIT_DOOR.hit;
     this.exitDoorZone = this.add.zone(exit.x, exit.y, exit.w, exit.h).setOrigin(0).setInteractive();
     this.cursorManager.bind(this.exitDoorZone, "talk", () => this.tryOpenExitPrompt(true));
-    this.exitHint = this.add.text(exit.x + 22, exit.y + 18, "!", {
-      color: "#ff4a4a", // オブジェクトは赤（キャラの黄色と見分ける）
-      fontFamily: FONTS.body,
-      fontSize: "34px",
-      stroke: "#4a0f0f",
-      strokeThickness: 5,
-      resolution: 3,
-    }).setOrigin(0.5).setDepth(80000).setVisible(false).setInteractive();
+    this.exitHint = this.makeHintMark(exit.x + 22, exit.y + 18);
     this.cursorManager.bind(this.exitHint, "talk", () => this.tryOpenExitPrompt(true));
     this.tweens.add({
       targets: this.exitHint,
@@ -239,6 +173,49 @@ export class FieldScene extends Phaser.Scene {
       this.add.rectangle(room.x, room.y, room.w, room.h, 0x000000, 1)
         .setOrigin(0).setDepth(90000).setAlpha(0).setBlendMode(Phaser.BlendModes.MULTIPLY),
     ]));
+  }
+
+  // 調べられる物の上に出す赤い「!」（最初は非表示）
+  makeHintMark(x, y) {
+    return this.add.text(x, y, "!", {
+      color: "#ff4a4a", // オブジェクトは赤（キャラの黄色と見分ける）
+      fontFamily: FONTS.body,
+      fontSize: "34px",
+      stroke: "#4a0f0f",
+      strokeThickness: 5,
+      resolution: 3,
+    }).setOrigin(0.5).setDepth(80000).setVisible(false).setInteractive();
+  }
+
+  // 足元から四角（hit）までの距離。四角の中なら0
+  footDistanceTo(hit) {
+    const footX = this.player.x;
+    const footY = this.player.y + FOOT_OFFSET;
+    return Math.hypot(
+      Math.max(hit.x - footX, 0, footX - (hit.x + hit.w)),
+      Math.max(hit.y - footY, 0, footY - (hit.y + hit.h)),
+    );
+  }
+
+  // 会話・選択画面などを開く前に、押しっぱなしの操作を止める
+  freezeInput() {
+    this.cursorManager.reset();
+    this.virtualStick.reset();
+  }
+
+  // 暗転 → midway（見えないうちに状態を変える）→ 明転 → onDone
+  fadeThrough(outMs, inMs, midway, onDone = null) {
+    const camera = this.cameras.main;
+    this.inputLocked = true;
+    camera.fadeOut(outMs, 0, 0, 0);
+    camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      midway();
+      camera.fadeIn(inMs, 0, 0, 0);
+      camera.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => {
+        this.inputLocked = false;
+        onDone?.();
+      });
+    });
   }
 
   updateRoomDarkness(immediate = false) {
@@ -273,13 +250,7 @@ export class FieldScene extends Phaser.Scene {
 
   // 足元から扉の四角までの距離
   toiletDoorDistance() {
-    const { hit } = TOILET_DOOR;
-    const footX = this.player.x;
-    const footY = this.player.y + FOOT_OFFSET;
-    return Math.hypot(
-      Math.max(hit.x - footX, 0, footX - (hit.x + hit.w)),
-      Math.max(hit.y - footY, 0, footY - (hit.y + hit.h)),
-    );
+    return this.footDistanceTo(TOILET_DOOR.hit);
   }
 
   // 扉のまわり（外側）にいれば開け閉めできる。横や斜めからでもよい
@@ -337,8 +308,7 @@ export class FieldScene extends Phaser.Scene {
       this.sayLines(nightDoorLines);
       return;
     }
-    this.cursorManager.reset();
-    this.virtualStick.reset();
+    this.freezeInput();
     this.launchOverlay("ExitPromptScene");
   }
 
@@ -383,7 +353,7 @@ export class FieldScene extends Phaser.Scene {
     this.player.update(delta, this.virtualStick.vector);
     this.updateNearbyNpc();
     this.updateRoomDarkness();
-    this.updateEkuboLeaving();
+    this.ekubo.updateLeaving();
     this.updateSpotHint();
     this.updateHoverCursors();
     // 近くに話せる人や調べられる物があるときは、自分のクリック（たすき）を止める（そちらを押せなくなるため）
@@ -439,8 +409,7 @@ export class FieldScene extends Phaser.Scene {
     if (this.inputLocked) {
       return;
     }
-    this.cursorManager.reset();
-    this.virtualStick.reset();
+    this.freezeInput();
     const id = npc.dialogueId;
     let lines;
     let dialogKey = null;
@@ -449,10 +418,10 @@ export class FieldScene extends Phaser.Scene {
     let portraits = {};
 
     if (id === "ekubo") {
-      const state = this.ekuboState();
+      const state = this.ekubo.state();
       if (state === 2) {
         // 玄関の外に立っている守衛のエクボに話しかけた：プレゼントの場面
-        this.startEkuboGift();
+        this.ekubo.startGift();
         return;
       }
       if (state === 0) {
@@ -497,96 +466,6 @@ export class FieldScene extends Phaser.Scene {
     return true;
   }
 
-  // ---- エクボ ----
-  // 0＝まだ話していない／1＝1回目のあと（近くにいる）／2＝玄関の外で待っている／3＝プレゼントのあと（元の場所）
-  ekuboState() {
-    return save.flag("ekuboState") ?? 0;
-  }
-
-  setupEkubo() {
-    this.ekubo = this.npcCharacters.find((npc) => npc.id === "ekubo");
-    this.ekuboHome = { x: this.ekubo.x, y: this.ekubo.y };
-    const state = this.ekuboState();
-    if (state === 2) {
-      this.placeGuardAtDoor();
-    } else if (state === 3) {
-      // 玄関から戻ったあとは、守衛の姿（正面）のまま
-      this.ekubo.setSkin("chara_guard_front");
-      this.showTakoyaki();
-    }
-  }
-
-  // 玄関の外（階段側）に、守衛のエクボ（横向き）が立つ。触る（話しかける）とプレゼントの場面
-  placeGuardAtDoor() {
-    this.ekubo.setSkin("chara_guard_side");
-    // 暗い階段の中でも見えるよう、部屋の暗さ（乗算）より手前に出す
-    this.ekubo.setPosition(EKUBO_DOOR_POS.x, EKUBO_DOOR_POS.y).setDepth(90001).setVisible(true);
-    // 暗い階段にいるので、乗算の幕の代わりに少し暗くする（話しかけて階段が明るくなったら戻す）
-    this.ekubo.sprite.setTint(GUARD_DIM_TINT);
-  }
-
-  // 1回目のあと、幽霊のエクボが画面の外に出たら消えて、玄関の外に守衛のエクボが立つ
-  updateEkuboLeaving() {
-    if (this.ekuboState() !== 1) {
-      return;
-    }
-    const view = this.cameras.main.worldView;
-    const margin = 80;
-    const isOutside = (x, y) => x < view.x - margin || x > view.right + margin
-      || y < view.y - margin || y > view.bottom + margin;
-    // 玄関側が画面に映っているときは、目の前で現れないよう待つ
-    if (isOutside(this.ekubo.x, this.ekubo.y) && isOutside(EKUBO_DOOR_POS.x, EKUBO_DOOR_POS.y)) {
-      save.setFlag("ekuboState", 2);
-      this.placeGuardAtDoor();
-    }
-  }
-
-  lightStairs(isLit) {
-    const layer = this.roomDarkness.get("stairs");
-    this.tweens.killTweensOf(layer);
-    if (isLit) {
-      // このあとマップは一時停止する（アニメが止まる）ので、すぐ明るくする
-      layer.setAlpha(0);
-      return;
-    }
-    this.tweens.add({ targets: layer, alpha: DARK_ALPHA, duration: DARK_FADE_MS });
-  }
-
-  startEkuboGift() {
-    this.cursorManager.reset();
-    this.virtualStick.reset();
-    this.lightStairs(true);
-    this.ekubo.sprite.clearTint();
-    this.launchOverlay("DialogScene", {
-      npc: { id: this.ekubo.id, name: this.ekubo.name, color: this.ekubo.color },
-      lines: ekuboGiftLines,
-      dialogKey: "ekubo2",
-      gift: { id: "ekubo", name: GIFT_INFO.ekubo.gift },
-      portraits: { エクボ: "chara_guard_side" },
-      onFinish: () => this.finishEkuboGift(),
-    });
-  }
-
-  // 暗転して、エクボを元の場所（エアコンの下）へ移す
-  finishEkuboGift() {
-    const camera = this.cameras.main;
-    this.inputLocked = true;
-    camera.fadeOut(500, 0, 0, 0);
-    camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.ekubo.setSkin("chara_guard_front");
-      this.ekubo.setPosition(this.ekuboHome.x, this.ekuboHome.y)
-        .setDepth(this.ekuboHome.y + FOOT_OFFSET);
-      this.lightStairs(false);
-      save.giveGift("ekubo");
-      save.setFlag("ekuboState", 3);
-      this.showTakoyaki();
-      camera.fadeIn(500, 0, 0, 0);
-      camera.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => {
-        this.inputLocked = false;
-      });
-    });
-  }
-
   // ---- 調べる ----
   // 調べたときの文章を霊幻の地の文で出し、終わったらライブラリに登録する
   examine(objectId, after = null) {
@@ -599,8 +478,7 @@ export class FieldScene extends Phaser.Scene {
 
   // 霊幻の地の文を出す（終わったら onFinish）。objectId＝調べた物（その絵を真ん中に出す）
   sayLines(lines, onFinish = null, objectId = null, pictureKey = null) {
-    this.cursorManager.reset();
-    this.virtualStick.reset();
+    this.freezeInput();
     this.launchOverlay("DialogScene", {
       npc: { id: "reigen", name: "霊幻", color: 0x397cca },
       lines,
@@ -615,17 +493,7 @@ export class FieldScene extends Phaser.Scene {
   // replay＝ライブラリのシークレットから見直しているとき（終わったらライブラリに戻る）
   startNight(replay = false) {
     this.replayNight = replay;
-    const camera = this.cameras.main;
-    this.inputLocked = true;
-    camera.fadeOut(800, 0, 0, 0);
-    camera.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.applyNight();
-      camera.fadeIn(800, 0, 0, 0);
-      camera.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => {
-        this.inputLocked = false;
-        this.sayLines(nightIntroLines);
-      });
-    });
+    this.fadeThrough(800, 800, () => this.applyNight(), () => this.sayLines(nightIntroLines));
   }
 
   // 夜の状態にする（NPCを消し、全体を暗くする）
@@ -635,7 +503,7 @@ export class FieldScene extends Phaser.Scene {
       npc.setVisible(false);
       npc.setTalkAvailable(false);
     }
-    this.takoyakiSprite?.setVisible(false);
+    this.ekubo.hideTakoyaki();
     for (const layer of this.roomDarkness.values()) {
       layer.setAlpha(0);
     }
@@ -646,15 +514,19 @@ export class FieldScene extends Phaser.Scene {
     this.game.events.emit("tasks-changed");
   }
 
-  // 夜のデスク：写真 → 金庫（メモが必要）→ トゥルーエンド
-  useNightDesk() {
-    if (!session.photo) {
-      this.sayLines(nightDeskLines, () => {
-        session.photo = true;
-        this.game.events.emit("tasks-changed");
-      });
-    } else if (!save.flag("safeMemo")) {
+  // 夜：椅子のある机で写真を見る → 書類の下の金庫（メモが必要）→ トゥルーエンド
+  useNightPhoto() {
+    this.sayLines(nightDeskLines, () => {
+      session.photo = true;
+      this.game.events.emit("tasks-changed");
+    });
+  }
+
+  useNightSafe() {
+    if (!save.flag("safeMemo")) {
       this.sayLines(nightSafeNoMemoLines);
+    } else if (!session.photo) {
+      this.sayLines(nightSafeNoPhotoLines);
     } else {
       this.sayLines(nightSafeOpenLines, () => {
         session.safeDone = true;
@@ -702,13 +574,19 @@ export class FieldScene extends Phaser.Scene {
       {
         key: "deskPapers",
         seen: () => (session.night ? session.safeDone : save.hasObject("safe")),
-        use: () => (session.night ? this.useNightDesk() : this.examine("safe")),
+        use: () => (session.night ? this.useNightSafe() : this.examine("safe")),
+      },
+      {
+        key: "nightPhoto",
+        enabled: () => session.night,
+        seen: () => session.photo,
+        use: () => this.useNightPhoto(),
       },
       { key: "giftPile", seen: () => save.hasObject("giftpile"), use: () => this.examine("giftpile") },
       { key: "gamingTie", seen: () => save.hasObject("gamingtie"), use: () => this.examine("gamingtie") },
       {
         key: "takoyaki",
-        enabled: () => this.ekuboState() === 3 && !session.night,
+        enabled: () => this.ekubo.state() === 3 && !session.night,
         seen: () => Boolean(save.flag("takoyakiSeen")),
         // たこ焼きの中身（シロツメクサ）は、ライブラリのプレゼントの文章と同じ
         use: () => this.sayLines(thinkLines(GIFT_INFO.ekubo.episode), () => save.setFlag("takoyakiSeen"), null, "gift_ekubo"),
@@ -729,26 +607,14 @@ export class FieldScene extends Phaser.Scene {
         }
       });
     }
-    this.spotHint = this.add.text(0, 0, "!", {
-      color: "#ff4a4a", // オブジェクトは赤（キャラの黄色と見分ける）
-      fontFamily: FONTS.body,
-      fontSize: "34px",
-      stroke: "#4a0f0f",
-      strokeThickness: 5,
-      resolution: 3,
-    }).setOrigin(0.5).setDepth(80000).setVisible(false).setInteractive();
+    this.spotHint = this.makeHintMark(0, 0);
     // 「!」を押しても調べられる
     this.cursorManager.bind(this.spotHint, "inspect", () => this.nearestSpot(true)?.use());
   }
 
   // 足元から、調べる場所（四角）までの距離
   spotDistance(spot) {
-    const { hit } = spot;
-    const footX = this.player.x;
-    const footY = this.player.y + FOOT_OFFSET;
-    const dx = Math.max(hit.x - footX, 0, footX - (hit.x + hit.w));
-    const dy = Math.max(hit.y - footY, 0, footY - (hit.y + hit.h));
-    return Math.hypot(dx, dy);
+    return this.footDistanceTo(spot.hit);
   }
 
   spotInReach(spot) {
@@ -783,18 +649,6 @@ export class FieldScene extends Phaser.Scene {
       const { hit } = spot;
       this.spotHint.setPosition(hit.x + hit.w / 2, hit.y + hit.h * 0.4);
     }
-  }
-
-  // エクボのプレゼント（たこ焼き）。絵ができるまでは仮の丸
-  showTakoyaki() {
-    if (this.takoyakiSprite) {
-      return;
-    }
-    const hit = SPOTS.takoyaki.hit;
-    // 小さなテーブルの上のたこ焼き（絵の幅を60pxに合わせる）
-    const image = this.add.image(hit.x + hit.w / 2, hit.y + hit.h / 2, "gift_ekubo_s").setDepth(1005);
-    image.setScale(64 / image.width);
-    this.takoyakiSprite = image;
   }
 
   restoreNpcCursor() {

@@ -202,7 +202,14 @@ export const nightDeskLines = [
 
 export const nightSafeNoMemoLines = [
   think("書類の下に金庫がある。……が、番号がわからない。", "There's a safe under the papers. ...But I don't know the combination."),
-  think("どこかにメモを残したはずなんだが。", "I'm sure I left a memo somewhere."),
+  think("なんだったっけ……。相談所のどこかにヒントを置いていたはずだ。", "What was it again...? I'm sure I left a hint somewhere in the office."),
+];
+
+// メモの番号で金庫は開いたが、しまう写真をまだ見つけていないとき
+export const nightSafeNoPhotoLines = [
+  think("メモの番号で、金庫が開いた。", "The combination from the memo opened the safe."),
+  think("……が、しまうものをまだ持っていない。", "...But I have nothing to put inside."),
+  think("たしか俺のデスクの上に置いてあるはずだ。", "I'm sure it's somewhere on my desk."),
 ];
 
 export const nightSafeOpenLines = [
