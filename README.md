@@ -23,7 +23,7 @@
 
 ## 開発者向け
 
-Node.js が必要です。`my-game` フォルダで実行します。
+Node.js が必要です。リポジトリのルート（`package.json` のある場所）で実行します。
 
 ```sh
 npm install

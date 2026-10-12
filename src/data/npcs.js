@@ -7,7 +7,6 @@ export const npcs = npcData.map((npc) => ({
   x: npc.x,
   y: npc.y,
   color: Number.parseInt(npc.color.replace("#", ""), 16),
-  depthBonus: npc.depthBonus ?? 0, // 家具との前後を直すための足し算
 }));
 
 // マップ上のキャラ絵（public/assets/chara/ の画像。FieldScene で "chara_ファイル名" として読み込む）
